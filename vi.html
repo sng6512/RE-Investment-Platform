@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>Công Cụ Phân Tích Bất Động Sản Cho Thuê</title>
+<style>
+  :root{
+    --ink:#14181F; --paper:#FBFAF7; --panel:#FFFFFF; --line:#E7E3DA; --muted:#726C5F; --faint:#9A9384;
+    --go:#1F7A4D; --goSoft:#E8F1EB; --bad:#B23A2E; --badSoft:#F7EAE7; --warn:#9A6B12; --warnSoft:#F6EEDC; --inputBg:#FCFBF8;
+    --mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);margin:0;padding:20px 16px 48px;}
+  .wrap{max-width:1100px;margin:0 auto;}
+  h1{margin:4px 0 0;font-size:24px;font-weight:700;letter-spacing:-.01em;}
+  .seg{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:600;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;}
+  .col{display:flex;flex-direction:column;gap:16px;min-width:0;}
+  .grid{display:grid;grid-template-columns:1fr;gap:16px;}
+  @media(min-width:860px){.grid{grid-template-columns:minmax(0,1fr) 380px;align-items:start;}.results{position:sticky;top:16px;}}
+  input,select{font-family:var(--sans);}
+  .in{width:100%;font-family:var(--mono);font-size:13px;color:var(--ink);background:var(--inputBg);border:1px solid var(--line);
+    border-radius:7px;padding:8px 10px;text-align:right;outline:none;transition:border-color .15s,box-shadow .15s;}
+  .in:focus{border-color:var(--go);box-shadow:0 0 0 3px var(--goSoft);}
+  .in.text{text-align:left;}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;}
+  .lab{font-size:13px;color:var(--muted);}
+  .out{font-family:var(--mono);font-variant-numeric:tabular-nums;}
+  .chip{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:6px 10px;font-size:12.5px;color:var(--ink);cursor:pointer;}
+  .chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .tab{font-size:13px;padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer;}
+  .tab.active{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600;}
+  .fieldwrap{position:relative;width:130px;}
+  .aff{position:absolute;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:12px;color:var(--faint);}
+  table{border-collapse:collapse;width:100%;min-width:460px;}
+  @media(max-width:600px){
+    body{padding:12px 10px 48px;}
+    h1{font-size:20px;}
+    .card{padding:12px 14px;}
+    .in{font-size:16px;padding:10px;}
+    .chip{padding:8px 12px;font-size:13px;}
+    .tab{padding:9px 14px;}
+    .fieldwrap{width:120px;}
+  }
+  input[type=number]{-moz-appearance:textfield;}
+  input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+var _memStore={};
+var store={
+  get:function(k){try{return localStorage.getItem(k);}catch(e){return _memStore[k]||null;}},
+  set:function(k,v){try{localStorage.setItem(k,v);}catch(e){_memStore[k]=v;}}
+};
+var _storageOk=(function(){try{localStorage.setItem('_t','1');localStorage.removeItem('_t');return true;}catch(e){return false;}})();
+var C={ink:"#14181F",paper:"#FBFAF7",panel:"#FFFFFF",line:"#E7E3DA",muted:"#726C5F",faint:"#9A9384",
+  go:"#1F7A4D",goSoft:"#E8F1EB",bad:"#B23A2E",badSoft:"#F7EAE7",warn:"#9A6B12",warnSoft:"#F6EEDC",inputBg:"#FCFBF8"};
+var GREEN_D="#1F7A4D",AMBER_D="#9A6B12",RED_D="#B23A2E";
+var GREEN_H="#5FC98C",AMBER_H="#E3B455",RED_H="#F08A7E";
+
+var DEFAULT_DEAL={address:"404 E El Monte St, San Gabriel CA",price:1060000,dpPct:25,rate:7.37,termYears:30,
+  closingPct:2.5,rehab:10000,aduBuildCost:0,unitCount:1,units:[3400,0,0,0,0,0],aduOn:false,aduRent:0,
+  otherIncome:0,vacPct:5,taxPct:1.2,insurance:1500,hoa:0,pmPct:0,maintPct:1,utilities:0,apprPct:3,schoolRating:7,homeSqft:1180,lotSqft:8250};
+
+function num(v){var n=parseFloat(v);return isNaN(n)?0:n;}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function money(n){return (n<0?"-$":"$")+Math.abs(Math.round(n)).toLocaleString();}
+function pct(n){return n.toFixed(1)+"%";}
+function mult(n){return n.toFixed(2)+"x";}
+function uid(){return Math.random().toString(36).slice(2,9);}
+function normalize(d){var o=Object.assign({},DEFAULT_DEAL,d||{});var u=(d&&d.units)?d.units.slice():DEFAULT_DEAL.units.slice();while(u.length<6)u.push(0);o.units=u.slice(0,6);return o;}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+function gradeMeta(g){
+  if(g>=8.5)return{word:"Xuất sắc",color:C.go,soft:C.goSoft,hi:GREEN_H};
+  if(g>=7)return{word:"Mạnh",color:C.go,soft:C.goSoft,hi:GREEN_H};
+  if(g>=5.5)return{word:"Tốt",color:C.warn,soft:C.warnSoft,hi:AMBER_H};
+  if(g>=4)return{word:"Cận biên",color:C.warn,soft:C.warnSoft,hi:AMBER_H};
+  if(g>=2.5)return{word:"Yếu",color:C.bad,soft:C.badSoft,hi:RED_H};
+  return{word:"Kém",color:C.bad,soft:C.badSoft,hi:RED_H};
+}
+
+function compute(d){
+  var price=num(d.price),dp=num(d.dpPct)/100,r=num(d.rate)/100/12,n=num(d.termYears)*12;
+  var down=price*dp,loan=price-down,pi=0;
+  if(loan>0&&n>0)pi=r===0?loan/n:(loan*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
+  var closing=price*(num(d.closingPct)/100);
+  var aduBuild=d.aduOn?num(d.aduBuildCost):0;
+  var cashToClose=down+closing+num(d.rehab)+aduBuild;
+  var unitRent=0;for(var i=0;i<d.unitCount;i++)unitRent+=num(d.units[i]);
+  var aduRent=d.aduOn?num(d.aduRent):0;
+  var grossMo=unitRent+aduRent+num(d.otherIncome);
+  var grossYr=grossMo*12,vac=num(d.vacPct)/100,egi=grossYr*(1-vac);
+  var occUnits=0;for(var j=0;j<d.unitCount;j++)if(num(d.units[j])>0)occUnits++;if(aduRent>0)occUnits++;
+  var taxes=price*(num(d.taxPct)/100),pm=grossYr*(num(d.pmPct)/100),maint=price*(num(d.maintPct)/100);
+  var opex=taxes+num(d.insurance)+num(d.hoa)+pm+maint+num(d.utilities);
+  var noi=egi-opex,ds=pi*12,acf=noi-ds,mcf=acf/12;
+  var cap=price>0?noi/price*100:0,coc=cashToClose>0?acf/cashToClose*100:0,grm=grossYr>0?price/grossYr:0,dscr=ds>0?noi/ds:0;
+  var breakevenOcc=grossYr>0?(opex+ds)/grossYr*100:0;
+  var pmPct=num(d.pmPct)/100,maintPct=num(d.maintPct)/100,taxPct=num(d.taxPct)/100;
+  var k=(loan>0&&pi>0)?pi/loan:(r===0&&n>0?1/n:0);
+  var fixedNonPrice=num(d.insurance)+num(d.hoa)+num(d.utilities);
+  var denom=taxPct+maintPct+(1-dp)*k*12;
+  var maxPrice=denom>0?(egi-fixedNonPrice-grossYr*pmPct)/denom:0;
+  var fixedOpex=taxes+num(d.insurance)+num(d.hoa)+maint+num(d.utilities);
+  var denom2=1-vac-pmPct;
+  var beGrossYr=denom2>0?(ds+fixedOpex)/denom2:0;
+  var beRentMo=beGrossYr/12;
+  var cfPerUnit=mcf/Math.max(occUnits,1),appr=num(d.apprPct),school=num(d.schoolRating);
+  var factors=[
+    {key:"Lợi nhuận trên tiền mặt (CoC)",w:.28,s:clamp(coc,0,10),detail:pct(coc)},
+    {key:"Dòng tiền mỗi căn",w:.18,s:clamp(cfPerUnit/300*10,0,10),detail:money(cfPerUnit)+"/u"},
+    {key:"Tỷ suất vốn hóa (Cap rate)",w:.14,s:clamp(cap/6*10,0,10),detail:pct(cap)},
+    {key:"An toàn nợ (DSCR)",w:.15,s:clamp((dscr-0.5)*10,0,10),detail:mult(dscr)},
+    {key:"Giá so với tiền thuê (GRM)",w:.10,s:grossYr>0?clamp((20-grm)/10*10,0,10):0,detail:mult(grm)},
+    {key:"Chất lượng trường học",w:.10,s:clamp(school,0,10),detail:school.toFixed(0)+"/10"},
+    {key:"Tăng giá (giả định)",w:.05,s:clamp(appr/5*10,0,10),detail:pct(appr)}
+  ];
+  var grade=0;for(var f=0;f<factors.length;f++)grade+=factors[f].w*factors[f].s;
+  var gm=gradeMeta(grade);
+  var verdict,vColor,vSoft,vNote;
+  if(coc>=8){verdict="MẠNH";vColor=C.go;vSoft=C.goSoft;vNote="Đạt mục tiêu lợi nhuận tiền mặt và dòng tiền.";}
+  else if(mcf>=0&&coc>=4){verdict="CẬN BIÊN";vColor=C.warn;vSoft=C.warnSoft;vNote="Dòng tiền dương nhưng lợi nhuận dưới mục tiêu 8%.";}
+  else if(mcf>=0){verdict="MỎNG";vColor=C.warn;vSoft=C.warnSoft;vNote="Chỉ vừa dương - kiểm tra kỹ tiền thuê và chi phí.";}
+  else{verdict="BỎ QUA";vColor=C.bad;vSoft=C.badSoft;vNote="Dòng tiền âm với các thông số này.";}
+  return{down:down,loan:loan,pi:pi,cashToClose:cashToClose,grossMo:grossMo,egi:egi,occUnits:occUnits,
+    taxes:taxes,maint:maint,opex:opex,noi:noi,acf:acf,mcf:mcf,cap:cap,coc:coc,grm:grm,dscr:dscr,
+    breakevenOcc:breakevenOcc,maxPrice:maxPrice,beRentMo:beRentMo,verdict:verdict,vColor:vColor,vSoft:vSoft,
+    vNote:vNote,grade:grade,gm:gm,factors:factors,school:school};
+}
+
+var deals=[],currentId=null,view="analyze",showBreak=true,deal=null;
+
+function load(){
+  try{var r=store.get("rda_deals");if(r){deals=JSON.parse(r).map(function(x){return{id:x.id,name:x.name,deal:normalize(x.deal)};});}}catch(e){deals=[];}
+  if(!deals.length){var id=uid();deals=[{id:id,name:"San Gabriel - El Monte St",deal:normalize(DEFAULT_DEAL)}];currentId=id;}
+  else{try{var lo=store.get("rda_lastOpen");currentId=(lo&&deals.some(function(x){return x.id===lo;}))?lo:deals[0].id;}catch(e){currentId=deals[0].id;}}
+  deal=deals.find(function(x){return x.id===currentId;}).deal;
+}
+function save(){try{store.set("rda_deals",JSON.stringify(deals));store.set("rda_lastOpen",currentId);}catch(e){}}
+function currentName(){var e=deals.find(function(x){return x.id===currentId;});return e?e.name:"";}
+
+function field(label,key,opt){opt=opt||{};var v=key.indexOf("unit")===0?deal.units[+key.slice(4)]:deal[key];
+  return '<div class="row"><label class="lab" style="flex:1">'+label+'</label><div class="fieldwrap">'+
+    (opt.prefix?'<span class="aff" style="left:9px">'+opt.prefix+'</span>':'')+
+    '<input class="in" inputmode="decimal" data-key="'+key+'" step="'+(opt.step||"1")+'" value="'+esc(v)+'" '+
+    'style="padding-left:'+(opt.prefix?20:10)+'px;padding-right:'+(opt.suffix?26:10)+'px"/>'+
+    (opt.suffix?'<span class="aff" style="right:9px">'+opt.suffix+'</span>':'')+'</div></div>';}
+function outRow(label,id,strong){return '<div class="row" style="border-top:1px dashed '+C.line+'">'+
+  '<span class="lab" style="'+(strong?'font-weight:600;color:'+C.ink:'')+'">'+label+'</span>'+
+  '<span class="out" id="'+id+'" style="font-size:'+(strong?15:13.5)+'px;font-weight:'+(strong?700:500)+'"></span></div>';}
+
+function resultsHTML(m){
+  var minis=[["Dòng tiền năm",money(m.acf),m.acf>=0],["Lợi nhuận CoC",pct(m.coc),m.coc>=0],["Tỷ suất vốn hóa",pct(m.cap),true]];
+  var h='<div style="background:'+C.ink+';border-radius:14px;padding:20px 20px 18px;color:'+C.paper+'">'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">'+
+      '<div><div class="seg" style="color:'+C.faint+'">Dòng tiền hàng tháng</div>'+
+      '<div class="out" style="font-size:34px;font-weight:700;letter-spacing:-.02em;margin-top:2px;color:'+(m.mcf>=0?GREEN_H:RED_H)+'">'+money(m.mcf)+'</div></div>'+
+      '<div style="text-align:right"><div class="seg" style="color:'+C.faint+'">Điểm xếp hạng</div>'+
+      '<div class="out" style="font-size:34px;font-weight:700;letter-spacing:-.02em;margin-top:2px;color:'+m.gm.hi+'">'+m.grade.toFixed(1)+'<span style="font-size:15px;color:'+C.faint+'">/10</span></div>'+
+      '<div style="font-size:12px;color:#C9C4B7;margin-top:1px">'+m.gm.word+'</div></div></div>'+
+    '<div style="display:inline-flex;align-items:center;gap:8px;margin-top:12px;background:'+m.vSoft+';color:'+m.vColor+';border-radius:999px;padding:5px 12px;font-weight:700;font-size:12.5px;letter-spacing:.08em">'+m.verdict+'</div>'+
+    '<p style="margin:10px 0 0;font-size:12.5px;color:#C9C4B7;line-height:1.45">'+m.vNote+'</p>'+
+    '<div style="display:flex;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid #2A2F38">'+
+    minis.map(function(x){return '<div><div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#8C8778">'+x[0]+'</div><div class="out" style="font-size:15px;font-weight:700;margin-top:2px;color:'+(x[2]?GREEN_H:RED_H)+'">'+x[1]+'</div></div>';}).join('')+
+    '</div></div>';
+  h+='<div class="card" style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" id="breakToggle"><div class="seg">Chi tiết điểm xếp hạng</div><span style="font-size:12px;color:'+C.faint+'">'+(showBreak?"ẩn":"hiện")+'</span></div>';
+  if(showBreak){h+='<div style="margin-top:10px">'+m.factors.map(function(f){var col=f.s>=7?C.go:f.s>=4?C.warn:C.bad;
+    return '<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">'+
+      '<span style="color:'+C.muted+'">'+f.key+' <span style="color:'+C.faint+'">- '+Math.round(f.w*100)+'%</span></span>'+
+      '<span class="out" style="color:'+C.ink+'">'+f.detail+' <span style="color:'+C.faint+'">('+f.s.toFixed(1)+')</span></span></div>'+
+      '<div style="height:6px;background:'+C.line+';border-radius:999px;overflow:hidden"><div style="width:'+(f.s/10*100)+'%;height:100%;background:'+col+';border-radius:999px"></div></div></div>';}).join('')+
+    '<p style="font-size:11px;color:'+C.faint+';margin:8px 0 0;line-height:1.5">Điểm có trọng số từ 1-10. Các chỉ số dòng tiền và an toàn nợ chiếm 85%; trường học và tăng giá là giả định có trọng số thấp.</p></div>';}
+  h+='</div>';
+  h+='<div class="card" style="margin-top:16px"><div class="seg">Chỉ số lợi nhuận</div>'+
+    metricRow("Tỷ suất vốn hóa",pct(m.cap))+metricRow("Lợi nhuận CoC",pct(m.coc),true)+metricRow("Hệ số nhân tiền thuê (GRM)",mult(m.grm))+
+    metricRow("Tỷ lệ trả nợ (DSCR)",mult(m.dscr))+metricRow("Tỷ lệ lấp đầy hòa vốn",pct(m.breakevenOcc))+metricRow("NOI / năm",money(m.noi))+'</div>';
+  var beRatio=m.beRentMo>0?Math.min(1.5,m.grossMo/m.beRentMo):0;
+  h+='<div class="card" style="margin-top:16px"><div class="seg">Mức tiền thuê hòa vốn</div>'+
+    '<p style="font-size:12.5px;color:'+C.muted+';margin:8px 0 12px;line-height:1.45">So sánh tiền thuê hiện tại với mức cần thiết để trang trải toàn bộ chi phí.</p>'+
+    '<div style="position:relative;height:12px;background:'+C.line+';border-radius:999px;overflow:hidden">'+
+    '<div style="position:absolute;left:0;top:0;bottom:0;width:'+(beRatio/1.5*100)+'%;background:'+(m.grossMo>=m.beRentMo?C.go:C.bad)+';border-radius:999px"></div>'+
+    '<div style="position:absolute;left:'+(1/1.5*100)+'%;top:-3px;bottom:-3px;width:2px;background:'+C.ink+'"></div></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:'+C.faint+';font-family:'+'var(--mono)'+'"><span>hiện tại '+money(m.grossMo)+'</span><span>hòa vốn '+money(m.beRentMo)+'</span></div></div>';
+  h+='<div class="card" style="margin-top:16px"><div class="seg">Tóm tắt hàng tháng</div>'+
+    metricRow("Tiền thuê hiệu quả mỗi tháng (sau khi trừ tỷ lệ trống)",money(m.egi/12))+
+    metricRow("Gốc &amp; lãi hàng tháng (P&amp;I)","-"+money(m.pi))+
+    metricRow("Chi phí vận hành hàng tháng","-"+money(m.opex/12))+
+    '<div class="row" style="border-top:1px solid '+C.line+';margin-top:4px">'+
+    '<span class="lab" style="font-weight:600;color:'+C.ink+';font-size:14px">Dòng tiền thuần hàng tháng</span>'+
+    '<span class="out" style="font-size:18px;font-weight:700;color:'+(m.mcf>=0?C.go:C.bad)+'">'+money(m.mcf)+'</span></div>'+
+    '<p style="font-size:11.5px;color:'+C.faint+';margin:8px 0 0;line-height:1.5">Tiền thuê hiệu quả mỗi tháng trừ đi gốc &amp; lãi và chi phí vận hành hàng tháng. Khớp với dòng tiền hiển thị phía trên.</p></div>';
+  h+='<div class="card" style="margin-top:16px"><div class="seg">Công cụ giải bài toán</div>'+
+    metricRow("Giá tối đa để hòa vốn dòng tiền",money(m.maxPrice))+metricRow("Tiền thuê cần để hòa vốn",money(m.beRentMo)+"/tháng")+
+    '<p style="font-size:11.5px;color:'+C.faint+';margin:10px 0 0;line-height:1.5">Tiền thuê là ước tính cho đến khi được xác minh với dữ liệu thị trường hiện tại. Đây chỉ là công cụ sàng lọc - hãy xác nhận chi tiết với ngân hàng và kế toán của bạn.</p></div>';
+  return h;
+}
+function metricRow(l,v,strong){return '<div class="row" style="border-top:1px dashed '+C.line+'"><span class="lab" style="'+(strong?'font-weight:600;color:'+C.ink:'')+'">'+l+'</span><span class="out" style="font-size:'+(strong?15:13.5)+'px;font-weight:'+(strong?700:500)+'">'+v+'</span></div>';}
+
+function recompute(){
+  var m=compute(deal);
+  var map={out_down:money(m.down),out_loan:money(m.loan),out_pi:money(m.pi),out_cash:money(m.cashToClose),
+    out_grossMo:money(m.grossMo),out_egi:money(m.egi),out_occ:String(m.occUnits),out_taxes:money(m.taxes),
+    out_maint:money(m.maint),out_opex:money(m.opex),out_opexMo:money(m.opex/12)};
+  for(var k in map){var el=document.getElementById(k);if(el)el.textContent=map[k];}
+  var res=document.getElementById("results");if(res)res.innerHTML=resultsHTML(m);
+  var bt=document.getElementById("breakToggle");if(bt)bt.onclick=function(){showBreak=!showBreak;recompute();};
+}
+
+function renderApp(){
+  var app=document.getElementById("app");
+  var m=compute(deal);
+  var head='<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">'+
+    '<div><div class="seg" style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:16px;background:'+m.gm.color+';display:inline-block;border-radius:2px"></span>Bàn Phân Tích</div>'+
+    '<h1>Công Cụ Phân Tích Bất Động Sản Cho Thuê</h1><p style="margin:3px 0 0;font-size:13px;color:'+C.muted+'">Phân tích dòng tiền cho BĐS cho thuê tại Nam California - tối đa 6 căn + ADU</p></div>';
+  if(view==="analyze"){
+    head+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<select id="dealSelect" style="font-size:13px;padding:8px 10px;border-radius:7px;border:1px solid '+C.line+';background:'+C.panel+';color:'+C.ink+';max-width:200px">'+
+      deals.map(function(x){return '<option value="'+x.id+'"'+(x.id===currentId?' selected':'')+'>'+esc(x.name)+'</option>';}).join('')+'</select>'+
+      '<button class="chip" id="btnNew">+ Mới</button>'+
+      '<button class="chip" id="btnDel"'+(deals.length<=1?' style="opacity:.4"':'')+'>Xóa</button></div>';
+  }
+  head+='</div>';
+  head+='<div style="display:flex;gap:8px;margin-bottom:18px">'+
+    '<button class="tab'+(view==="analyze"?" active":"")+'" id="tabA">Phân tích</button>'+
+    '<button class="tab'+(view==="compare"?" active":"")+'" id="tabC">So sánh'+(deals.length>1?" - "+deals.length:"")+'</button></div>';
+
+  if(view==="compare"){app.innerHTML=head+compareHTML();attachCommon();attachCompare();return;}
+
+  var units="";for(var i=0;i<deal.unitCount;i++)units+=field("Tiền thuê căn "+(i+1),"unit"+i,{prefix:"$"});
+  var left='<div class="col">'+
+    '<div class="card"><div class="seg">Bất động sản</div>'+
+      '<input class="in text" id="nameInput" data-role="name" style="margin-top:8px;font-family:var(--sans);font-size:14px" value="'+esc(currentName())+'" placeholder="Tên giao dịch"/>'+
+      field("Diện tích nhà (sqft)","homeSqft",{})+field("Diện tích lô đất (sqft)","lotSqft",{})+'</div>'+
+    '<div class="card"><div class="seg">Mua &amp; Tài chính</div>'+
+      field("Giá mua","price",{prefix:"$"})+field("Tiền trả trước","dpPct",{suffix:"%"})+
+      field("Lãi suất","rate",{suffix:"%",step:"0.01"})+field("Thời hạn vay","termYears",{suffix:"yrs"})+
+      field("Chi phí đóng giao dịch","closingPct",{suffix:"%",step:"0.1"})+field("Ngân sách sửa chữa","rehab",{prefix:"$"})+
+      outRow("Tiền trả trước","out_down")+outRow("Số tiền vay","out_loan")+outRow("Gốc &amp; lãi hàng tháng","out_pi",true)+outRow("Tổng tiền mặt cần để đóng giao dịch","out_cash",true)+'</div>'+
+    '<div class="card"><div class="seg">Thu nhập - tiền thuê hàng tháng theo căn</div>'+
+      '<div style="display:flex;align-items:center;gap:8px;margin:10px 0 4px;flex-wrap:wrap"><span class="lab">Số căn</span>'+
+      [1,2,3,4,5,6].map(function(nn){return '<button class="chip'+(deal.unitCount===nn?" active":"")+'" data-uc="'+nn+'" style="min-width:34px;text-align:center">'+nn+'</button>';}).join('')+'</div>'+
+      units+
+      '<div class="row" style="border-top:1px solid '+C.line+';margin-top:4px"><span class="lab" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="aduChk" '+(deal.aduOn?"checked":"")+'/> Thêm ADU</span><span class="out" style="font-size:12px;color:'+C.faint+'">'+(deal.aduOn?"đã thêm":"chưa thêm")+'</span></div>'+
+      (deal.aduOn?field("Tiền thuê ADU","aduRent",{prefix:"$"})+field("Chi phí xây ADU (vốn)","aduBuildCost",{prefix:"$"}):"")+
+      field("Thu nhập khác (đỗ xe, giặt ủi)","otherIncome",{prefix:"$"})+field("Tỷ lệ trống","vacPct",{suffix:"%",step:"0.5"})+
+      outRow("Tổng tiền thuê hàng tháng","out_grossMo",true)+outRow("Tổng thu nhập thực tế / năm","out_egi")+outRow("Số căn có người thuê","out_occ")+'</div>'+
+    '<div class="card"><div class="seg">Chi phí vận hành - hàng năm</div>'+
+      field("Thuế bất động sản","taxPct",{suffix:"%",step:"0.01"})+field("Bảo hiểm","insurance",{prefix:"$"})+field("Phí HOA","hoa",{prefix:"$"})+
+      field("Phí quản lý (0 = tự quản lý)","pmPct",{suffix:"%",step:"0.5"})+field("Quỹ bảo trì","maintPct",{suffix:"%",step:"0.1"})+field("Tiện ích do chủ trả","utilities",{prefix:"$"})+
+      outRow("Thuế bất động sản","out_taxes")+outRow("Quỹ bảo trì","out_maint")+outRow("Tổng chi phí vận hành (hàng năm)","out_opex",true)+outRow("Tổng chi phí vận hành (hàng tháng)","out_opexMo",true)+'</div>'+
+    '<div class="card"><div class="seg">Khu vực &amp; điểm xếp hạng</div>'+
+      field("Điểm trường học (1-10)","schoolRating",{step:"1"})+
+      '<p style="font-size:11.5px;color:'+C.faint+';margin:6px 0 12px;line-height:1.5">From Zillow\'s GreatSchools ratings (shown on each listing). Average the assigned elementary / middle / high, or enter the area score. Manual entry - listings can\'t be read automatically.</p>'+
+      field("Tăng giá ước tính mỗi năm","apprPct",{suffix:"%",step:"0.5"})+
+      '<p style="font-size:11.5px;color:'+C.faint+';margin:6px 0 0;line-height:1.5">Cả hai thông số này chỉ ảnh hưởng đến điểm xếp hạng - không ảnh hưởng dòng tiền. Đây là giả định, không phải dự báo.</p></div>'+
+    '</div>';
+  var right='<div class="results"><div id="results"></div></div>';
+  app.innerHTML=head+'<div class="grid">'+left+right+'</div>';
+  attachCommon();attachAnalyze();recompute();
+}
+
+function compareHTML(){
+  var cols=deals.map(function(x){return{id:x.id,name:x.name,m:compute(normalize(x.deal))};});
+  if(cols.length<2){return '<div class="card"><p style="font-size:14px;color:'+C.muted+';margin:0;line-height:1.5">Thêm một giao dịch thứ hai để so sánh. Dùng <b>+ Mới</b> trong tab Phân tích để tạo bất động sản khác, sau đó quay lại đây để xem so sánh.</p></div>';}
+  var rows=[
+    {l:"Điểm xếp hạng",g:function(m){return m.grade;},f:function(v){return v.toFixed(1)+" /10";},b:"high",bold:true},
+    {l:"Kết luận",g:function(m){return m.verdict;},f:function(v){return v;},b:null},
+    {l:"Dòng tiền hàng tháng",g:function(m){return m.mcf;},f:money,b:"high",bold:true},
+    {l:"Lợi nhuận CoC",g:function(m){return m.coc;},f:pct,b:"high"},
+    {l:"Tỷ suất vốn hóa",g:function(m){return m.cap;},f:pct,b:"high"},
+    {l:"DSCR",g:function(m){return m.dscr;},f:mult,b:"high"},
+    {l:"GRM",g:function(m){return m.grm;},f:mult,b:"low"},
+    {l:"Điểm trường học",g:function(m){return m.school;},f:function(v){return v.toFixed(0)+"/10";},b:"high"},
+    {l:"Tỷ lệ lấp đầy hòa vốn",g:function(m){return m.breakevenOcc;},f:pct,b:"low"},
+    {l:"Tiền mặt cần đóng",g:function(m){return m.cashToClose;},f:money,b:"low"},
+    {l:"Tổng tiền thuê / tháng",g:function(m){return m.grossMo;},f:money,b:"high"},
+    {l:"NOI / năm",g:function(m){return m.noi;},f:money,b:"high"}
+  ];
+  function best(row){if(!row.b)return -1;var bi=0,bv=row.g(cols[0].m);for(var i=0;i<cols.length;i++){var v=row.g(cols[i].m);if(row.b==="high"?v>bv:v<bv){bv=v;bi=i;}}return bi;}
+  var h='<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr>'+
+    '<th style="text-align:left;padding:14px 16px;background:'+C.ink+';color:'+C.paper+';font-size:11px;letter-spacing:.1em;text-transform:uppercase;position:sticky;left:0;z-index:2">Chỉ số</th>';
+  cols.forEach(function(c){h+='<th style="padding:12px 14px;background:'+C.ink+';color:'+C.paper+';text-align:right;min-width:130px">'+
+    '<div style="font-size:13px;font-weight:700">'+esc(c.name)+'</div>'+
+    '<div style="font-size:11px;margin-top:4px"><span style="background:'+c.m.gm.soft+';color:'+c.m.gm.color+';border-radius:999px;padding:1px 7px;font-weight:700">'+c.m.grade.toFixed(1)+'</span></div>'+
+    '<button class="cmpOpen" data-id="'+c.id+'" style="margin-top:6px;font-size:11px;color:'+C.paper+';background:transparent;border:1px solid #3A3F48;border-radius:6px;padding:3px 8px;cursor:pointer">Mở</button></th>';});
+  h+='</tr></thead><tbody>';
+  rows.forEach(function(row,ri){var bi=best(row);h+='<tr style="border-top:1px solid '+C.line+';background:'+(ri%2?C.inputBg:C.panel)+'">'+
+    '<td style="padding:10px 16px;font-size:12.5px;color:'+C.muted+';position:sticky;left:0;background:'+(ri%2?C.inputBg:C.panel)+';font-weight:'+(row.bold?600:400)+'">'+row.l+'</td>';
+    cols.forEach(function(c,i){var v=row.g(c.m),isBest=i===bi,color=C.ink;
+      if(row.l==="Dòng tiền hàng tháng")color=v>=0?C.go:C.bad;if(row.l==="Kết luận")color=c.m.vColor;
+      h+='<td class="out" style="padding:10px 14px;text-align:right;font-size:'+(row.bold?14:13)+'px;font-weight:'+(row.bold||isBest?700:500)+';color:'+color+';background:'+(isBest?C.goSoft:"transparent")+'">'+row.f(v)+'</td>';});
+    h+='</tr>';});
+  h+='</tbody></table></div><p style="font-size:11.5px;color:'+C.faint+';margin:0;padding:10px 16px;line-height:1.5">Xanh = tốt nhất trong dòng. Cao hơn là tốt hơn, trừ GRM, tỷ lệ lấp đầy hòa vốn và tiền mặt cần đóng. Điểm xếp hạng ưu tiên dòng tiền và an toàn nợ hơn tăng giá.</p></div>';
+  return h;
+}
+
+function attachCommon(){
+  var ta=document.getElementById("tabA"),tc=document.getElementById("tabC");
+  if(ta)ta.onclick=function(){view="analyze";renderApp();};
+  if(tc)tc.onclick=function(){view="compare";renderApp();};
+}
+function attachAnalyze(){
+  var sel=document.getElementById("dealSelect");
+  if(sel)sel.onchange=function(){currentId=sel.value;deal=normalize(deals.find(function(x){return x.id===currentId;}).deal);
+    deals.find(function(x){return x.id===currentId;}).deal=deal;save();renderApp();};
+  var bn=document.getElementById("btnNew");
+  if(bn)bn.onclick=function(){var id=uid();var e={id:id,name:"Giao dịch chưa có tên",deal:normalize({address:"",units:[0,0,0,0,0,0]})};deals.push(e);currentId=id;deal=e.deal;save();renderApp();};
+  var bd=document.getElementById("btnDel");
+  if(bd)bd.onclick=function(){if(deals.length<=1)return;deals=deals.filter(function(x){return x.id!==currentId;});currentId=deals[0].id;deal=normalize(deals[0].deal);deals[0].deal=deal;save();renderApp();};
+  var ni=document.getElementById("nameInput");
+  if(ni)ni.oninput=function(){var e=deals.find(function(x){return x.id===currentId;});if(e)e.name=ni.value;save();var o=document.querySelector('#dealSelect option[value="'+currentId+'"]');if(o)o.textContent=ni.value;};
+  var chk=document.getElementById("aduChk");
+  if(chk)chk.onchange=function(){deal.aduOn=chk.checked;save();renderApp();};
+  var ucs=document.querySelectorAll("[data-uc]");
+  ucs.forEach(function(b){b.onclick=function(){deal.unitCount=+b.getAttribute("data-uc");save();renderApp();};});
+  var app=document.getElementById("app");
+  app.addEventListener("input",function(e){var t=e.target;if(!t.dataset||!t.dataset.key)return;
+    var key=t.dataset.key;if(key.indexOf("unit")===0){deal.units[+key.slice(4)]=t.value;}else{deal[key]=t.value;}save();recompute();});
+}
+function attachCompare(){var btns=document.querySelectorAll(".cmpOpen");btns.forEach(function(b){b.onclick=function(){currentId=b.getAttribute("data-id");deal=normalize(deals.find(function(x){return x.id===currentId;}).deal);deals.find(function(x){return x.id===currentId;}).deal=deal;save();view="analyze";renderApp();};});}
+
+document.addEventListener('DOMContentLoaded',function(){
+  load();renderApp();
+  if(!_storageOk){
+    var b=document.createElement('div');
+    b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#9A6B12;color:#fff;font-size:12px;padding:8px 16px;text-align:center;z-index:999;font-family:sans-serif;';
+    b.textContent='Không thể lưu trữ trong trình duyệt này - các giao dịch sẽ không được lưu giữa các lần sử dụng. Mở qua một URL để có đầy đủ chức năng.';
+    document.body.appendChild(b);
+  }
+});
+</script>
+</body>
+</html>

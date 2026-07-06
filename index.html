@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>Rental Deal Analyzer</title>
+<style>
+  :root{
+    --ink:#14181F; --paper:#FBFAF7; --panel:#FFFFFF; --line:#E7E3DA; --muted:#726C5F; --faint:#9A9384;
+    --go:#1F7A4D; --goSoft:#E8F1EB; --bad:#B23A2E; --badSoft:#F7EAE7; --warn:#9A6B12; --warnSoft:#F6EEDC; --inputBg:#FCFBF8;
+    --mono:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,sans-serif; /* numbers: tabular sans */
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Inter,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);margin:0;padding:20px 16px 48px;}
+  .wrap{max-width:1100px;margin:0 auto;}
+  h1{margin:4px 0 0;font-size:24px;font-weight:700;letter-spacing:-.01em;}
+  .seg{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:600;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;}
+  .col{display:flex;flex-direction:column;gap:16px;min-width:0;}
+  .grid{display:grid;grid-template-columns:1fr;gap:16px;}
+  @media(min-width:860px){.grid{grid-template-columns:minmax(0,1fr) 380px;align-items:start;}.results{position:sticky;top:16px;}}
+  input,select{font-family:var(--sans);}
+  .in{width:100%;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;color:var(--ink);background:var(--inputBg);border:1px solid var(--line);
+    border-radius:7px;padding:8px 10px;text-align:right;outline:none;transition:border-color .15s,box-shadow .15s;}
+  .in:focus{border-color:var(--go);box-shadow:0 0 0 3px var(--goSoft);}
+  .in.text{text-align:left;}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;}
+  .lab{font-size:13px;color:var(--muted);}
+  .out{font-family:var(--mono);font-variant-numeric:tabular-nums;}
+  .chip{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:6px 10px;font-size:12.5px;color:var(--ink);cursor:pointer;}
+  .chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .tab{font-size:13px;padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer;}
+  .tab.active{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600;}
+  .fieldwrap{position:relative;width:130px;}
+  .aff{position:absolute;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:12px;color:var(--faint);}
+  table{border-collapse:collapse;width:100%;min-width:460px;}
+  @media(max-width:600px){
+    body{padding:12px 10px 48px;}
+    h1{font-size:20px;}
+    .card{padding:12px 14px;}
+    .in{font-size:16px;padding:10px;}
+    .chip{padding:8px 12px;font-size:13px;}
+    .tab{padding:9px 14px;}
+    .fieldwrap{width:120px;}
+  }
+  input[type=number]{-moz-appearance:textfield;}
+  input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+var _memStore={};
+var store={
+  get:function(k){try{return localStorage.getItem(k);}catch(e){return _memStore[k]||null;}},
+  set:function(k,v){try{localStorage.setItem(k,v);}catch(e){_memStore[k]=v;}}
+};
+var _storageOk=(function(){try{localStorage.setItem('_t','1');localStorage.removeItem('_t');return true;}catch(e){return false;}})();
+var C={ink:"#14181F",paper:"#FBFAF7",panel:"#FFFFFF",line:"#E7E3DA",muted:"#726C5F",faint:"#9A9384",
+  go:"#1F7A4D",goSoft:"#E8F1EB",bad:"#B23A2E",badSoft:"#F7EAE7",warn:"#9A6B12",warnSoft:"#F6EEDC",inputBg:"#FCFBF8"};
+var GREEN_D="#1F7A4D",AMBER_D="#9A6B12",RED_D="#B23A2E";
+var GREEN_H="#5FC98C",AMBER_H="#E3B455",RED_H="#F08A7E";
+
+var DEFAULT_DEAL={address:"404 E El Monte St, San Gabriel CA",price:1060000,dpPct:50,rate:7.37,termYears:30,
+  closingPct:2.5,rehab:10000,aduBuildCost:0,unitCount:1,units:[3400,0,0,0,0,0],aduOn:false,aduRent:0,
+  otherIncome:0,vacPct:5,taxPct:1.2,insurance:1500,hoa:0,pmPct:0,maintPct:1,utilities:0,apprPct:3,schoolRating:7,homeSqft:1180,lotSqft:8250};
+
+function num(v){var n=parseFloat(v);return isNaN(n)?0:n;}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function money(n){return (n<0?"-$":"$")+Math.abs(Math.round(n)).toLocaleString();}
+function pct(n){return n.toFixed(1)+"%";}
+function mult(n){return n.toFixed(2)+"x";}
+function uid(){return Math.random().toString(36).slice(2,9);}
+function normalize(d){var o=Object.assign({},DEFAULT_DEAL,d||{});var u=(d&&d.units)?d.units.slice():DEFAULT_DEAL.units.slice();while(u.length<6)u.push(0);o.units=u.slice(0,6);return o;}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+function gradeMeta(g){
+  if(g>=8.5)return{word:"Exceptional",color:C.go,soft:C.goSoft,hi:GREEN_H};
+  if(g>=7)return{word:"Strong",color:C.go,soft:C.goSoft,hi:GREEN_H};
+  if(g>=5.5)return{word:"Solid",color:C.warn,soft:C.warnSoft,hi:AMBER_H};
+  if(g>=4)return{word:"Marginal",color:C.warn,soft:C.warnSoft,hi:AMBER_H};
+  if(g>=2.5)return{word:"Weak",color:C.bad,soft:C.badSoft,hi:RED_H};
+  return{word:"Poor",color:C.bad,soft:C.badSoft,hi:RED_H};
+}
+
+function compute(d){
+  var price=num(d.price),dp=num(d.dpPct)/100,r=num(d.rate)/100/12,n=num(d.termYears)*12;
+  var down=price*dp,loan=price-down,pi=0;
+  if(loan>0&&n>0)pi=r===0?loan/n:(loan*r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
+  var closing=price*(num(d.closingPct)/100);
+  var aduBuild=d.aduOn?num(d.aduBuildCost):0;
+  var cashToClose=down+closing+num(d.rehab)+aduBuild;
+  var unitRent=0;for(var i=0;i<d.unitCount;i++)unitRent+=num(d.units[i]);
+  var aduRent=d.aduOn?num(d.aduRent):0;
+  var grossMo=unitRent+aduRent+num(d.otherIncome);
+  var grossYr=grossMo*12,vac=num(d.vacPct)/100,egi=grossYr*(1-vac);
+  var occUnits=0;for(var j=0;j<d.unitCount;j++)if(num(d.units[j])>0)occUnits++;if(aduRent>0)occUnits++;
+  var taxes=price*(num(d.taxPct)/100),pm=grossYr*(num(d.pmPct)/100),maint=price*(num(d.maintPct)/100);
+  var opex=taxes+num(d.insurance)+num(d.hoa)+pm+maint+num(d.utilities);
+  var noi=egi-opex,ds=pi*12,acf=noi-ds,mcf=acf/12;
+  var cap=price>0?noi/price*100:0,coc=cashToClose>0?acf/cashToClose*100:0,grm=grossYr>0?price/grossYr:0,dscr=ds>0?noi/ds:0;
+  var breakevenOcc=grossYr>0?(opex+ds)/grossYr*100:0;
+  var pmPct=num(d.pmPct)/100,maintPct=num(d.maintPct)/100,taxPct=num(d.taxPct)/100;
+  var k=(loan>0&&pi>0)?pi/loan:(r===0&&n>0?1/n:0);
+  var fixedNonPrice=num(d.insurance)+num(d.hoa)+num(d.utilities);
+  var denom=taxPct+maintPct+(1-dp)*k*12;
+  var maxPrice=denom>0?(egi-fixedNonPrice-grossYr*pmPct)/denom:0;
+  var fixedOpex=taxes+num(d.insurance)+num(d.hoa)+maint+num(d.utilities);
+  var denom2=1-vac-pmPct;
+  var beGrossYr=denom2>0?(ds+fixedOpex)/denom2:0;
+  var beRentMo=beGrossYr/12;
+  var cfPerUnit=mcf/Math.max(occUnits,1),appr=num(d.apprPct),school=num(d.schoolRating);
+  var homeSqft=num(d.homeSqft),lotSqft=num(d.lotSqft);
+  var ppsf=homeSqft>0?price/homeSqft:0;
+  var sfHomePerK=(homeSqft>0&&price>0)?homeSqft/(price/1000):0;
+  var sfLotPerK=(lotSqft>0&&price>0)?lotSqft/(price/1000):0;
+  var factors=[
+    {key:"Cash flow",w:.25,s:clamp(cfPerUnit/300*10,0,10),detail:money(cfPerUnit)+"/u"},
+    {key:"Debt safety (DSCR)",w:.20,s:clamp((dscr-0.5)*10,0,10),detail:mult(dscr)},
+    {key:"School quality",w:.20,s:clamp(school,0,10),detail:school.toFixed(0)+"/10"},
+    {key:"Price per sq ft (home)",w:.15,s:homeSqft>0?clamp((1050-ppsf)/60,0,10):0,detail:homeSqft>0?"$"+Math.round(ppsf)+"/sf":"n/a"},
+    {key:"Lot sq ft vs price",w:.10,s:sfLotPerK>0?clamp((sfLotPerK-1.5)/0.55,0,10):0,detail:sfLotPerK>0?sfLotPerK.toFixed(1)+" sf/$k":"n/a"},
+    {key:"Appreciation (assumed)",w:.10,s:clamp(appr/5*10,0,10),detail:pct(appr)}
+  ];
+  var grade=0;for(var f=0;f<factors.length;f++)grade+=factors[f].w*factors[f].s;
+  var gm=gradeMeta(grade);
+  var verdict,vColor,vSoft,vNote;
+  if(coc>=8){verdict="STRONG";vColor=C.go;vSoft=C.goSoft;vNote="Meets cash-on-cash and cash-flow targets.";}
+  else if(mcf>=0&&coc>=4){verdict="MARGINAL";vColor=C.warn;vSoft=C.warnSoft;vNote="Positive cash flow but return below an 8% target.";}
+  else if(mcf>=0){verdict="THIN";vColor=C.warn;vSoft=C.warnSoft;vNote="Barely positive - verify rents and expenses carefully.";}
+  else{verdict="PASS";vColor=C.bad;vSoft=C.badSoft;vNote="Negative cash flow at these inputs.";}
+  return{down:down,loan:loan,pi:pi,cashToClose:cashToClose,grossMo:grossMo,egi:egi,occUnits:occUnits,
+    taxes:taxes,maint:maint,opex:opex,noi:noi,acf:acf,mcf:mcf,cap:cap,coc:coc,grm:grm,dscr:dscr,
+    breakevenOcc:breakevenOcc,maxPrice:maxPrice,beRentMo:beRentMo,verdict:verdict,vColor:vColor,vSoft:vSoft,
+    vNote:vNote,grade:grade,gm:gm,factors:factors,school:school};
+}
+
+var deals=[],currentId=null,view="analyze",showBreak=true,deal=null;
+
+function load(){
+  try{var r=store.get("rda_deals");if(r){deals=JSON.parse(r).map(function(x){return{id:x.id,name:x.name,deal:normalize(x.deal)};});}}catch(e){deals=[];}
+  if(!deals.length){var id=uid();deals=[{id:id,name:"San Gabriel - El Monte St",deal:normalize(DEFAULT_DEAL)}];currentId=id;}
+  else{try{var lo=store.get("rda_lastOpen");currentId=(lo&&deals.some(function(x){return x.id===lo;}))?lo:deals[0].id;}catch(e){currentId=deals[0].id;}}
+  deal=deals.find(function(x){return x.id===currentId;}).deal;
+}
+function save(){try{store.set("rda_deals",JSON.stringify(deals));store.set("rda_lastOpen",currentId);}catch(e){}}
+function currentName(){var e=deals.find(function(x){return x.id===currentId;});return e?e.name:"";}
+
+function field(label,key,opt){opt=opt||{};var v=key.indexOf("unit")===0?deal.units[+key.slice(4)]:deal[key];
+  return '<div class="row"><label class="lab" style="flex:1">'+label+'</label><div class="fieldwrap">'+
+    (opt.prefix?'<span class="aff" style="left:9px">'+opt.prefix+'</span>':'')+
+    '<input class="in" inputmode="decimal" data-key="'+key+'" step="'+(opt.step||"1")+'" value="'+esc(v)+'" '+
+    'style="padding-left:'+(opt.prefix?20:10)+'px;padding-right:'+(opt.suffix?26:10)+'px"/>'+
+    (opt.suffix?'<span class="aff" style="right:9px">'+opt.suffix+'</span>':'')+'</div></div>';}
+function outRow(label,id,strong){return '<div class="row" style="border-top:1px dashed '+C.line+'">'+
+  '<span class="lab" style="'+(strong?'font-weight:600;color:'+C.ink:'')+'">'+label+'</span>'+
+  '<span class="out" id="'+id+'" style="font-size:'+(strong?15:13.5)+'px;font-weight:'+(strong?700:500)+'"></span></div>';}
+
+function resultsHTML(m){
+  var minis=[["Annual CF",money(m.acf),m.acf>=0],["Cash-on-cash",pct(m.coc),m.coc>=0],["Cap rate",pct(m.cap),true]];
+  var h='<div style="background:'+C.ink+';border-radius:14px;padding:20px 20px 18px;color:'+C.paper+'">'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">'+
+      '<div><div class="seg" style="color:'+C.faint+'">Monthly cash flow</div>'+
+      '<div class="out" style="font-size:34px;font-weight:700;letter-spacing:-.02em;margin-top:2px;color:'+(m.mcf>=0?GREEN_H:RED_H)+'">'+money(m.mcf)+'</div></div>'+
+      '<div style="text-align:right"><div class="seg" style="color:'+C.faint+'">Grade</div>'+
+      '<div class="out" style="font-size:34px;font-weight:700;letter-spacing:-.02em;margin-top:2px;color:'+m.gm.hi+'">'+m.grade.toFixed(1)+'<span style="font-size:15px;color:'+C.faint+'">/10</span></div>'+
+      '<div style="font-size:12px;color:#C9C4B7;margin-top:1px">'+m.gm.word+'</div></div></div>'+
+    '<div style="display:inline-flex;align-items:center;gap:8px;margin-top:12px;background:'+m.vSoft+';color:'+m.vColor+';border-radius:999px;padding:5px 12px;font-weight:700;font-size:12.5px;letter-spacing:.08em">'+m.verdict+'</div>'+
+    '<p style="margin:10px 0 0;font-size:12.5px;color:#C9C4B7;line-height:1.45">'+m.vNote+'</p>'+
+    '<div style="display:flex;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid #2A2F38">'+
+    minis.map(function(x){return '<div><div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#8C8778">'+x[0]+'</div><div class="out" style="font-size:15px;font-weight:700;margin-top:2px;color:'+(x[2]?GREEN_H:RED_H)+'">'+x[1]+'</div></div>';}).join('')+
+    '</div></div>';
+  h+='<div class="card" style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" id="breakToggle"><div class="seg">Grade breakdown</div><span style="font-size:12px;color:'+C.faint+'">'+(showBreak?"hide":"show")+'</span></div>';
+  if(showBreak){h+='<div style="margin-top:10px">'+m.factors.map(function(f){var col=f.s>=7?C.go:f.s>=4?C.warn:C.bad;
+    return '<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">'+
+      '<span style="color:'+C.muted+'">'+f.key+' <span style="color:'+C.faint+'">- '+Math.round(f.w*100)+'%</span></span>'+
+      '<span class="out" style="color:'+C.ink+'">'+f.detail+' <span style="color:'+C.faint+'">('+f.s.toFixed(1)+')</span></span></div>'+
+      '<div style="height:6px;background:'+C.line+';border-radius:999px;overflow:hidden"><div style="width:'+(f.s/10*100)+'%;height:100%;background:'+col+';border-radius:999px"></div></div></div>';}).join('')+
+    '<p style="font-size:11px;color:'+C.faint+';margin:8px 0 0;line-height:1.5">Weighted 1-10 score. Cash-flow and debt-safety metrics drive 85%; school and appreciation are lightly-weighted assumptions.</p></div>';}
+  h+='</div>';
+  h+='<div class="card" style="margin-top:16px"><div class="seg">Return metrics</div>'+
+    metricRow("Cap rate",pct(m.cap))+metricRow("Cash-on-cash",pct(m.coc),true)+metricRow("Gross rent multiplier",mult(m.grm))+
+    metricRow("DSCR",mult(m.dscr))+metricRow("Break-even occupancy",pct(m.breakevenOcc))+metricRow("NOI / yr",money(m.noi))+'</div>';
+  var beRatio=m.beRentMo>0?Math.min(1.5,m.grossMo/m.beRentMo):0;
+  h+='<div class="card" style="margin-top:16px"><div class="seg">Break-even rent gauge</div>'+
+    '<p style="font-size:12.5px;color:'+C.muted+';margin:8px 0 12px;line-height:1.45">Where current rent sits vs. the rent needed to cover all costs.</p>'+
+    '<div style="position:relative;height:12px;background:'+C.line+';border-radius:999px;overflow:hidden">'+
+    '<div style="position:absolute;left:0;top:0;bottom:0;width:'+(beRatio/1.5*100)+'%;background:'+(m.grossMo>=m.beRentMo?C.go:C.bad)+';border-radius:999px"></div>'+
+    '<div style="position:absolute;left:'+(1/1.5*100)+'%;top:-3px;bottom:-3px;width:2px;background:'+C.ink+'"></div></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:'+C.faint+';font-family:'+'var(--mono)'+'"><span>current '+money(m.grossMo)+'</span><span>break-even '+money(m.beRentMo)+'</span></div></div>';
+  h+='<div class="card" style="margin-top:16px"><div class="seg">Monthly summary</div>'+
+    metricRow("Effective monthly rent (after vacancy)",money(m.egi/12))+
+    metricRow("Monthly P&amp;I","-"+money(m.pi))+
+    metricRow("Monthly operating expenses","-"+money(m.opex/12))+
+    '<div class="row" style="border-top:1px solid '+C.line+';margin-top:4px">'+
+    '<span class="lab" style="font-weight:600;color:'+C.ink+';font-size:14px">Net monthly cash flow</span>'+
+    '<span class="out" style="font-size:18px;font-weight:700;color:'+(m.mcf>=0?C.go:C.bad)+'">'+money(m.mcf)+'</span></div>'+
+    '<p style="font-size:11.5px;color:'+C.faint+';margin:8px 0 0;line-height:1.5">Effective monthly rent minus monthly P&amp;I and monthly operating expenses. Matches the cash flow shown above.</p></div>';
+  h+='<div class="card" style="margin-top:16px"><div class="seg">Deal solver</div>'+
+    metricRow("Max price for break-even CF",money(m.maxPrice))+metricRow("Rent needed for break-even CF",money(m.beRentMo)+"/mo")+
+    '<p style="font-size:11.5px;color:'+C.faint+';margin:10px 0 0;line-height:1.5">Rents are estimates until verified against current comps. Screening tool only - confirm specifics with your lender and CPA.</p></div>';
+  return h;
+}
+function metricRow(l,v,strong){return '<div class="row" style="border-top:1px dashed '+C.line+'"><span class="lab" style="'+(strong?'font-weight:600;color:'+C.ink:'')+'">'+l+'</span><span class="out" style="font-size:'+(strong?15:13.5)+'px;font-weight:'+(strong?700:500)+'">'+v+'</span></div>';}
+
+function recompute(){
+  var m=compute(deal);
+  var map={out_down:money(m.down),out_loan:money(m.loan),out_pi:money(m.pi),out_cash:money(m.cashToClose),
+    out_grossMo:money(m.grossMo),out_egi:money(m.egi),out_occ:String(m.occUnits),out_taxes:money(m.taxes),
+    out_maint:money(m.maint),out_opex:money(m.opex),out_opexMo:money(m.opex/12)};
+  for(var k in map){var el=document.getElementById(k);if(el)el.textContent=map[k];}
+  var res=document.getElementById("results");if(res)res.innerHTML=resultsHTML(m);
+  var bt=document.getElementById("breakToggle");if(bt)bt.onclick=function(){showBreak=!showBreak;recompute();};
+}
+
+function renderApp(){
+  var app=document.getElementById("app");
+  var m=compute(deal);
+  var head='<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">'+
+    '<div><div class="seg" style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:16px;background:'+m.gm.color+';display:inline-block;border-radius:2px"></span>Investment Platform</div>'+
+    '<h1>Real Estate Investment Platform</h1><p style="margin:3px 0 0;font-size:13px;color:'+C.muted+'">Deal screening + portfolio tracking for SoCal rentals</p></div>';
+  if(view==="analyze"){
+    head+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<select id="dealSelect" style="font-size:13px;padding:8px 10px;border-radius:7px;border:1px solid '+C.line+';background:'+C.panel+';color:'+C.ink+';max-width:200px">'+
+      deals.map(function(x){return '<option value="'+x.id+'"'+(x.id===currentId?' selected':'')+'>'+esc(x.name)+'</option>';}).join('')+'</select>'+
+      '<button class="chip" id="btnNew">+ New</button>'+
+      '<button class="chip" id="btnDel"'+(deals.length<=1?' style="opacity:.4"':'')+'>Delete</button></div>';
+  }
+  head+='</div>';
+  head+='<div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center">'+
+    '<button class="tab'+(view==="analyze"?" active":"")+'" id="tabA">Analyze</button>'+
+    '<button class="tab'+(view==="portfolio"?" active":"")+'" id="tabP">Portfolio</button>'+
+    '<button class="tab'+(view==="deallog"?" active":"")+'" id="tabL">Deal Log</button>'+
+    '<button class="tab'+(view==="compare"?" active":"")+'" id="tabC">Compare'+(deals.length>1?" - "+deals.length:"")+'</button>'+
+    '<button class="tab'+(view==="comps"?" active":"")+'" id="tabM">Comps</button>'+
+    '<span style="flex:1"></span>'+
+    '<button class="tab'+(view==="settings"?" active":"")+'" id="tabS">Settings</button>'+'<button class="tab" id="langBtn" style="margin-left:6px" title="Language">'+(lang==="vi"?"EN":"Tiếng Việt")+'</button></div>';
+
+  if(view==="portfolio"){app.innerHTML=head+portfolioHTML();attachCommon();attachPortfolio();return;}
+  if(view==="deallog"){app.innerHTML=head+dealLogHTML();attachCommon();attachDealLog();return;}
+  if(view==="comps"){app.innerHTML=head+compsHTML();attachCommon();attachComps();return;}
+  if(view==="settings"){app.innerHTML=head+settingsHTML();attachCommon();attachSettings();return;}
+  if(view==="compare"){app.innerHTML=head+compareHTML();attachCommon();attachCompare();return;}
+
+  var units="";for(var i=0;i<deal.unitCount;i++)units+=field("Unit "+(i+1)+" rent","unit"+i,{prefix:"$"});
+  var left='<div class="col">'+
+    '<div class="card"><div class="seg">Property</div>'+
+      '<input class="in text" id="nameInput" data-role="name" style="margin-top:8px;font-family:var(--sans);font-size:14px" value="'+esc(currentName())+'" placeholder="Deal name"/>'+
+      field("Square feet (home)","homeSqft",{})+field("Square feet (lot)","lotSqft",{})+'</div>'+
+    '<div class="card"><div class="seg">Purchase &amp; financing</div>'+
+      field("Purchase price","price",{prefix:"$"})+field("Down payment","dpPct",{suffix:"%"})+
+      field("Interest rate","rate",{suffix:"%",step:"0.01"})+field("Loan term","termYears",{suffix:"yrs"})+
+      field("Closing costs","closingPct",{suffix:"%",step:"0.1"})+field("Rehab / repair budget","rehab",{prefix:"$"})+
+      outRow("Down payment","out_down")+outRow("Loan amount","out_loan")+outRow("Monthly P&amp;I","out_pi",true)+outRow("Total cash to close","out_cash",true)+'</div>'+
+    '<div class="card"><div class="seg">Income - monthly rent by unit</div>'+
+      '<div style="display:flex;align-items:center;gap:8px;margin:10px 0 4px;flex-wrap:wrap"><span class="lab">Units</span>'+
+      [1,2,3,4,5,6].map(function(nn){return '<button class="chip'+(deal.unitCount===nn?" active":"")+'" data-uc="'+nn+'" style="min-width:34px;text-align:center">'+nn+'</button>';}).join('')+'</div>'+
+      units+
+      '<div class="row" style="border-top:1px solid '+C.line+';margin-top:4px"><span class="lab" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="aduChk" '+(deal.aduOn?"checked":"")+'/> Add ADU</span><span class="out" style="font-size:12px;color:'+C.faint+'">'+(deal.aduOn?"included":"off")+'</span></div>'+
+      (deal.aduOn?field("ADU rent","aduRent",{prefix:"$"})+field("ADU build cost (capital)","aduBuildCost",{prefix:"$"}):"")+
+      field("Other income (parking, laundry)","otherIncome",{prefix:"$"})+field("Vacancy allowance","vacPct",{suffix:"%",step:"0.5"})+
+      outRow("Gross monthly rent","out_grossMo",true)+outRow("Effective gross income / yr","out_egi")+outRow("Occupied units","out_occ")+'</div>'+
+    '<div class="card"><div class="seg">Operating expenses - annual</div>'+
+      field("Property tax rate","taxPct",{suffix:"%",step:"0.01"})+field("Insurance","insurance",{prefix:"$"})+field("HOA","hoa",{prefix:"$"})+
+      field("Property mgmt (0 = self-managed)","pmPct",{suffix:"%",step:"0.5"})+field("Maintenance reserve","maintPct",{suffix:"%",step:"0.1"})+field("Owner-paid utilities","utilities",{prefix:"$"})+
+      outRow("Property taxes","out_taxes")+outRow("Maintenance reserve","out_maint")+outRow("Total operating expenses (annual)","out_opex",true)+outRow("Total operating expenses (monthly)","out_opexMo",true)+'</div>'+
+    '<div class="card"><div class="seg">Neighborhood &amp; scoring</div>'+
+      field("School rating (1-10)","schoolRating",{step:"1"})+
+      '<p style="font-size:11.5px;color:'+C.faint+';margin:6px 0 12px;line-height:1.5">From Zillow\'s GreatSchools ratings (shown on each listing). Average the assigned elementary / middle / high, or enter the area score. Manual entry - listings can\'t be read automatically.</p>'+
+      field("Est. annual appreciation","apprPct",{suffix:"%",step:"0.5"})+
+      '<p style="font-size:11.5px;color:'+C.faint+';margin:6px 0 0;line-height:1.5">Both inputs affect the property grade only - never cash flow. Treat as assumptions, not forecasts.</p></div>'+
+    '</div>';
+  var right='<div class="results"><div id="results"></div></div>';
+  app.innerHTML=head+'<div class="grid">'+left+right+'</div>';
+  attachCommon();attachAnalyze();recompute();
+}
+
+function compareHTML(){
+  var cols=deals.map(function(x){return{id:x.id,name:x.name,m:compute(normalize(x.deal))};});
+  if(cols.length<2){return '<div class="card"><p style="font-size:14px;color:'+C.muted+';margin:0;line-height:1.5">Add a second deal to compare. Use <b>+ New</b> in the Analyze tab to create another property, then come back here to see them side by side.</p></div>';}
+  var rows=[
+    {l:"Grade",g:function(m){return m.grade;},f:function(v){return v.toFixed(1)+" /10";},b:"high",bold:true},
+    {l:"Verdict",g:function(m){return m.verdict;},f:function(v){return v;},b:null},
+    {l:"Monthly cash flow",g:function(m){return m.mcf;},f:money,b:"high",bold:true},
+    {l:"Cash-on-cash",g:function(m){return m.coc;},f:pct,b:"high"},
+    {l:"Cap rate",g:function(m){return m.cap;},f:pct,b:"high"},
+    {l:"DSCR",g:function(m){return m.dscr;},f:mult,b:"high"},
+    {l:"GRM",g:function(m){return m.grm;},f:mult,b:"low"},
+    {l:"School rating",g:function(m){return m.school;},f:function(v){return v.toFixed(0)+"/10";},b:"high"},
+    {l:"Break-even occ.",g:function(m){return m.breakevenOcc;},f:pct,b:"low"},
+    {l:"Cash to close",g:function(m){return m.cashToClose;},f:money,b:"low"},
+    {l:"Gross rent / mo",g:function(m){return m.grossMo;},f:money,b:"high"},
+    {l:"NOI / yr",g:function(m){return m.noi;},f:money,b:"high"}
+  ];
+  function best(row){if(!row.b)return -1;var bi=0,bv=row.g(cols[0].m);for(var i=0;i<cols.length;i++){var v=row.g(cols[i].m);if(row.b==="high"?v>bv:v<bv){bv=v;bi=i;}}return bi;}
+  var h='<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr>'+
+    '<th style="text-align:left;padding:14px 16px;background:'+C.ink+';color:'+C.paper+';font-size:11px;letter-spacing:.1em;text-transform:uppercase;position:sticky;left:0;z-index:2">Metric</th>';
+  cols.forEach(function(c){h+='<th style="padding:12px 14px;background:'+C.ink+';color:'+C.paper+';text-align:right;min-width:130px">'+
+    '<div style="font-size:13px;font-weight:700">'+esc(c.name)+'</div>'+
+    '<div style="font-size:11px;margin-top:4px"><span style="background:'+c.m.gm.soft+';color:'+c.m.gm.color+';border-radius:999px;padding:1px 7px;font-weight:700">'+c.m.grade.toFixed(1)+'</span></div>'+
+    '<button class="cmpOpen" data-id="'+c.id+'" style="margin-top:6px;font-size:11px;color:'+C.paper+';background:transparent;border:1px solid #3A3F48;border-radius:6px;padding:3px 8px;cursor:pointer">Open</button></th>';});
+  h+='</tr></thead><tbody>';
+  rows.forEach(function(row,ri){var bi=best(row);h+='<tr style="border-top:1px solid '+C.line+';background:'+(ri%2?C.inputBg:C.panel)+'">'+
+    '<td style="padding:10px 16px;font-size:12.5px;color:'+C.muted+';position:sticky;left:0;background:'+(ri%2?C.inputBg:C.panel)+';font-weight:'+(row.bold?600:400)+'">'+row.l+'</td>';
+    cols.forEach(function(c,i){var v=row.g(c.m),isBest=i===bi,color=C.ink;
+      if(row.l==="Monthly cash flow")color=v>=0?C.go:C.bad;if(row.l==="Verdict")color=c.m.vColor;
+      h+='<td class="out" style="padding:10px 14px;text-align:right;font-size:'+(row.bold?14:13)+'px;font-weight:'+(row.bold||isBest?700:500)+';color:'+color+';background:'+(isBest?C.goSoft:"transparent")+'">'+row.f(v)+'</td>';});
+    h+='</tr>';});
+  h+='</tbody></table></div><p style="font-size:11.5px;color:'+C.faint+';margin:0;padding:10px 16px;line-height:1.5">Green = best in row. Higher is better except GRM, break-even occupancy, and cash to close. Grade weights cash flow and debt safety over appreciation.</p></div>';
+  return h;
+}
+
+function attachCommon(){
+  var ta=document.getElementById("tabA"),tc=document.getElementById("tabC");
+  if(ta)ta.onclick=function(){view="analyze";renderApp();};
+  if(tc)tc.onclick=function(){view="compare";renderApp();};
+  var tp=document.getElementById("tabP");if(tp)tp.onclick=function(){view="portfolio";renderApp();};
+  var tl=document.getElementById("tabL");if(tl)tl.onclick=function(){view="deallog";renderApp();};
+  var tm=document.getElementById("tabM");if(tm)tm.onclick=function(){view="comps";renderApp();};
+  var tset=document.getElementById("tabS");if(tset)tset.onclick=function(){view="settings";renderApp();};
+  var lb=document.getElementById("langBtn");if(lb)lb.onclick=function(){lang=(lang==="vi")?"en":"vi";try{store.set("rp_lang",lang);}catch(e){}renderApp();applyLang();};
+}
+function attachAnalyze(){
+  var sel=document.getElementById("dealSelect");
+  if(sel)sel.onchange=function(){currentId=sel.value;deal=normalize(deals.find(function(x){return x.id===currentId;}).deal);
+    deals.find(function(x){return x.id===currentId;}).deal=deal;save();renderApp();};
+  var bn=document.getElementById("btnNew");
+  if(bn)bn.onclick=function(){var id=uid();var e={id:id,name:"Untitled deal",deal:normalize({address:"",units:[0,0,0,0,0,0]})};deals.push(e);currentId=id;deal=e.deal;save();renderApp();};
+  var bd=document.getElementById("btnDel");
+  if(bd)bd.onclick=function(){if(deals.length<=1)return;deals=deals.filter(function(x){return x.id!==currentId;});currentId=deals[0].id;deal=normalize(deals[0].deal);deals[0].deal=deal;save();renderApp();};
+  var ni=document.getElementById("nameInput");
+  if(ni)ni.oninput=function(){var e=deals.find(function(x){return x.id===currentId;});if(e)e.name=ni.value;save();var o=document.querySelector('#dealSelect option[value="'+currentId+'"]');if(o)o.textContent=ni.value;};
+  var chk=document.getElementById("aduChk");
+  if(chk)chk.onchange=function(){deal.aduOn=chk.checked;save();renderApp();};
+  var ucs=document.querySelectorAll("[data-uc]");
+  ucs.forEach(function(b){b.onclick=function(){deal.unitCount=+b.getAttribute("data-uc");save();renderApp();};});
+  var app=document.getElementById("app");
+  app.addEventListener("input",function(e){var t=e.target;if(!t.dataset||!t.dataset.key)return;
+    var key=t.dataset.key;if(key.indexOf("unit")===0){deal.units[+key.slice(4)]=t.value;}else{deal[key]=t.value;}save();recompute();});
+}
+function attachCompare(){var btns=document.querySelectorAll(".cmpOpen");btns.forEach(function(b){b.onclick=function(){currentId=b.getAttribute("data-id");deal=normalize(deals.find(function(x){return x.id===currentId;}).deal);deals.find(function(x){return x.id===currentId;}).deal=deal;save();view="analyze";renderApp();};});}
+
+/* ================= PLATFORM ADD-ONS ================= */
+var DEFAULTS={dpPct:50,rate:7.37,termYears:30,vacPct:5,taxPct:1.2,insurance:1500,pmPct:0,maintPct:1,closingPct:2.5};
+function loadSettings(){try{var r=store.get("rp_settings");if(r)DEFAULTS=Object.assign(DEFAULTS,JSON.parse(r));}catch(e){}
+  DEFAULT_DEAL.dpPct=DEFAULTS.dpPct;DEFAULT_DEAL.rate=DEFAULTS.rate;DEFAULT_DEAL.vacPct=DEFAULTS.vacPct;DEFAULT_DEAL.taxPct=DEFAULTS.taxPct;DEFAULT_DEAL.insurance=DEFAULTS.insurance;DEFAULT_DEAL.pmPct=DEFAULTS.pmPct;DEFAULT_DEAL.maintPct=DEFAULTS.maintPct;DEFAULT_DEAL.closingPct=DEFAULTS.closingPct;}
+function saveSettings(){try{store.set("rp_settings",JSON.stringify(DEFAULTS));}catch(e){}}
+
+/* ---- portfolio ---- */
+var portfolios=[],pfActive=0;
+var PTYPES=["SFR","Duplex","Triplex","Fourplex","5+","ADU"];
+var ADUS=["none","planned","permitted","built"];
+var PF_COLS=[["name","Name","text"],["type","Type","sel:PTYPES"],["purchaseDate","Purchased","date"],["price","Price","$"],["dpPct","Down%","%"],["rate","Rate%","%"],["termYears","Term","n"],["loanStart","Loan start","date"],["value","Value","$"],["balOverride","Bal ovr","$"],["units","Units","n"],["rent","Rent/mo","$"],["vacPct","Vac%","%"],["taxPct","Tax%","%"],["insurance","Ins/yr","$"],["hoa","HOA/mo","$"],["pmPct","PM%","%"],["maintPct","Maint%","%"],["utilities","Util/mo","$"],["pitiOverride","PITI*","$"],["adu","ADU","sel:ADUS"],["notes","Notes","text"]];
+function blankProp(nm){return {id:uid(),name:nm||"New property",type:"Duplex",purchaseDate:"",price:1200000,dpPct:DEFAULTS.dpPct,rate:DEFAULTS.rate,termYears:DEFAULTS.termYears,loanStart:"",value:1200000,balOverride:0,units:2,rent:6000,vacPct:DEFAULTS.vacPct,taxPct:DEFAULTS.taxPct,insurance:DEFAULTS.insurance,hoa:0,pmPct:DEFAULTS.pmPct,maintPct:DEFAULTS.maintPct,utilities:0,pitiOverride:0,adu:"none",notes:""};}
+function loadPortfolio(){try{var r=store.get("rp_portfolios");if(r)portfolios=JSON.parse(r);}catch(e){portfolios=[];}
+  if(!portfolios||!portfolios.length)portfolios=[{id:uid(),name:"My Portfolio",props:[]}];
+  try{var a=store.get("rp_active");pfActive=a?parseInt(a,10):0;}catch(e){pfActive=0;}
+  if(isNaN(pfActive)||pfActive<0||pfActive>=portfolios.length)pfActive=0;}
+function savePortfolio(){try{store.set("rp_portfolios",JSON.stringify(portfolios));store.set("rp_active",String(pfActive));}catch(e){}}
+function curPf(){return portfolios[pfActive]||{props:[]};}
+function mBetween(s){if(!s)return 0;var a=new Date(s),b=new Date();var m=(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth());return Math.max(0,m);}
+function balAfter(loan,r,n,pi,k){if(k<=0)return loan;if(k>=n)return 0;if(r===0)return Math.max(0,loan-pi*k);return loan*Math.pow(1+r,k)-pi*((Math.pow(1+r,k)-1)/r);}
+function pCalc(p){
+  var price=num(p.price),dp=num(p.dpPct)/100,r=num(p.rate)/100/12,n=num(p.termYears)*12;
+  var loan=price*(1-dp),pi=(loan>0&&n>0)?(r===0?loan/n:loan*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1)):0;
+  var egi=num(p.rent)*12*(1-num(p.vacPct)/100);
+  var taxesY=price*(num(p.taxPct)/100),mgmtMo=num(p.rent)*(num(p.pmPct)/100),maintMo=price*(num(p.maintPct)/100)/12;
+  var otherMo=num(p.hoa)+mgmtMo+maintMo+num(p.utilities);
+  var opex=(taxesY/12+num(p.insurance)/12+otherMo)*12;
+  var pitiCalc=pi+taxesY/12+num(p.insurance)/12,piti=num(p.pitiOverride)>0?num(p.pitiOverride):pitiCalc;
+  var mcf=egi/12-piti-otherMo,acf=mcf*12,noi=egi-opex,ds=pi*12;
+  var cashInv=price*dp+price*(num(DEFAULTS.closingPct)/100);
+  var cap=price>0?noi/price*100:0,coc=cashInv>0?acf/cashInv*100:0,dscr=ds>0?noi/ds:0;
+  var made=Math.min(n,mBetween(p.loanStart||p.purchaseDate));
+  var balNow=num(p.balOverride)>0?num(p.balOverride):balAfter(loan,r,n,pi,made);
+  var equity=num(p.value)-balNow,paidOff=loan>0?(loan-balNow)/loan*100:0;
+  return {loan:loan,pi:pi,piti:piti,noi:noi,acf:acf,mcf:mcf,cap:cap,coc:coc,dscr:dscr,equity:equity,balNow:balNow,paidOff:paidOff,cashInv:cashInv};
+}
+function pfCell(p,i,col){
+  var k=col[0],t=col[2];
+  if(t.indexOf("sel:")===0){var arr=(t.slice(4)==="PTYPES")?PTYPES:ADUS;
+    return '<td><select class="in" data-pk="'+k+'" data-idx="'+i+'" data-t="sel" style="width:92px;text-align:left">'+arr.map(function(o){return '<option'+(p[k]===o?' selected':'')+'>'+o+'</option>';}).join('')+'</select></td>';}
+  var type=(t==="date")?"date":(t==="text")?"text":"number";
+  var cls=(t==="text")?"in text":"in";var w=(t==="text")?"120px":(t==="date"?"122px":"78px");
+  return '<td><input class="'+cls+'" data-pk="'+k+'" data-idx="'+i+'" data-t="'+t+'" type="'+type+'" value="'+esc(p[k])+'" style="width:'+w+'"></td>';
+}
+function portfolioHTML(){
+  var pf=curPf();
+  var sw='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">'+
+    portfolios.map(function(x,i){return '<button class="chip'+(i===pfActive?' active':'')+'" data-pfsw="'+i+'">'+esc(x.name)+'</button>';}).join('')+
+    '<button class="chip" id="pfAdd">+ Portfolio</button><span style="flex:1"></span>'+
+    '<button class="chip" id="pfRen">Rename</button><button class="chip" id="pfDelP">Delete</button></div>';
+  var kpis='<div id="pfKpis" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px"></div>';
+  var head=PF_COLS.map(function(c){return '<th style="text-align:right;padding:6px 8px;font-size:11px;color:'+C.faint+';white-space:nowrap">'+c[1]+'</th>';}).join('')+'<th></th>';
+  var rows=pf.props.map(function(p,i){return '<tr>'+PF_COLS.map(function(c){return pfCell(p,i,c);}).join('')+'<td><button class="chip" data-pdel="'+i+'" style="color:'+C.bad+'">x</button></td></tr>';}).join('');
+  if(!pf.props.length)rows='<tr><td colspan="'+(PF_COLS.length+1)+'" style="padding:16px;color:'+C.muted+';font-size:13px">No properties yet. Click "+ Add property".</td></tr>';
+  var table='<div class="card" style="padding:0;overflow:hidden"><div class="seg" style="padding:12px 16px 0">Owned properties</div>'+
+    '<div style="padding:10px 16px"><button class="chip" id="pfAddProp">+ Add property</button> <button class="chip" id="pfCsv">Export CSV</button> <span style="font-size:11px;color:'+C.faint+'">PITI* editable; blank = auto. Bal ovr / Value = manual.</span></div>'+
+    '<div style="overflow-x:auto"><table style="min-width:1200px"><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  return sw+kpis+table+'<div id="pfResults" style="margin-top:16px"></div>';
+}
+function tdo(v,color){return '<td class="out" style="text-align:right;padding:7px 10px'+(color?';color:'+color:'')+'">'+v+'</td>';}
+function refreshPf(){
+  var pf=curPf(),res=pf.props.map(pCalc);
+  var T=function(f){return res.reduce(function(s,c){return s+c[f];},0);};
+  var totCf=T("mcf"),totEq=T("equity"),totInv=T("cashInv"),totPi=T("pi"),totNoi=T("noi");
+  var totPrice=pf.props.reduce(function(s,p){return s+num(p.price);},0)||1;
+  var kp=[["Monthly cash flow",money(totCf),totCf<0?C.bad:C.go],["Annual cash flow",money(totCf*12),totCf<0?C.bad:C.go],
+    ["Portfolio equity",money(totEq),C.ink],["Total invested",money(totInv),C.ink],
+    ["Blended cap",pct(totNoi/totPrice*100),C.ink],["Blended CoC",pct(totInv>0?totCf*12/totInv*100:0),totCf<0?C.bad:C.go],
+    ["Total P&I / mo",money(totPi),C.ink],["Properties",String(pf.props.length),C.ink]];
+  var kc=document.getElementById("pfKpis");
+  if(kc)kc.innerHTML=kp.map(function(k){return '<div class="card" style="padding:12px 14px"><div class="seg" style="font-size:10px">'+k[0]+'</div><div class="out" style="font-size:20px;font-weight:700;margin-top:4px;color:'+k[2]+'">'+k[1]+'</div></div>';}).join('');
+  var rc=document.getElementById("pfResults");if(!rc)return;
+  if(!pf.props.length){rc.innerHTML="";return;}
+  var h='<div class="card" style="padding:0;overflow:hidden"><div class="seg" style="padding:12px 16px 0">Computed results</div><div style="overflow-x:auto"><table style="min-width:820px"><thead><tr>'+
+    ["Property","P&I/mo","PITI/mo","NOI/yr","Cash flow/mo","Cap","CoC","DSCR","Equity","% paid"].map(function(x){return '<th style="text-align:right;padding:7px 10px;font-size:11px;color:'+C.faint+'">'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+  res.forEach(function(c,i){h+='<tr><td style="text-align:left;padding:7px 10px;font-size:13px">'+esc(pf.props[i].name)+'</td>'+
+    tdo(money(c.pi))+tdo(money(c.piti))+tdo(money(c.noi))+tdo(money(c.mcf),c.mcf<0?C.bad:C.go)+tdo(pct(c.cap))+tdo(pct(c.coc),c.coc<0?C.bad:C.go)+tdo(mult(c.dscr))+tdo(money(c.equity))+tdo(pct(c.paidOff))+'</tr>';});
+  h+='</tbody></table></div></div>';rc.innerHTML=h;
+}
+function attachPortfolio(){
+  document.querySelectorAll("[data-pfsw]").forEach(function(b){b.onclick=function(){pfActive=+b.getAttribute("data-pfsw");savePortfolio();renderApp();};});
+  var ap=document.getElementById("pfAdd");if(ap)ap.onclick=function(){var nm=prompt("New portfolio name:","Portfolio "+(portfolios.length+1));if(nm===null)return;portfolios.push({id:uid(),name:nm||"Portfolio",props:[]});pfActive=portfolios.length-1;savePortfolio();renderApp();};
+  var rn=document.getElementById("pfRen");if(rn)rn.onclick=function(){var nm=prompt("Rename portfolio:",curPf().name);if(nm===null)return;curPf().name=nm||curPf().name;savePortfolio();renderApp();};
+  var dp=document.getElementById("pfDelP");if(dp)dp.onclick=function(){if(portfolios.length<=1){alert("Keep at least one portfolio.");return;}if(!confirm("Delete this portfolio and its properties?"))return;portfolios.splice(pfActive,1);pfActive=0;savePortfolio();renderApp();};
+  var apr=document.getElementById("pfAddProp");if(apr)apr.onclick=function(){curPf().props.push(blankProp());savePortfolio();renderApp();};
+  document.querySelectorAll("[data-pdel]").forEach(function(b){b.onclick=function(){if(!confirm("Delete this property?"))return;curPf().props.splice(+b.getAttribute("data-pdel"),1);savePortfolio();renderApp();};});
+  document.querySelectorAll("[data-pk]").forEach(function(inp){var h=function(){var i=+inp.getAttribute("data-idx"),k=inp.getAttribute("data-pk"),t=inp.getAttribute("data-t");var p=curPf().props[i];p[k]=(t==="text"||t==="date"||t==="sel")?inp.value:num(inp.value);savePortfolio();refreshPf();};inp.oninput=h;if(inp.tagName==="SELECT")inp.onchange=h;});
+  var cx=document.getElementById("pfCsv");if(cx)cx.onclick=exportPortfolioCSV;
+  refreshPf();
+}
+
+/* ---- generic editable table (deal log, comps) ---- */
+function genCell(r,i,c,pfx,selMap){
+  var k=c[0],t=c[2];
+  if(t.indexOf("sel:")===0){var arr=selMap[t.slice(4)]||[];return '<td><select class="in" data-'+pfx+'k="'+k+'" data-idx="'+i+'" style="width:112px;text-align:left">'+arr.map(function(o){return '<option'+(r[k]===o?' selected':'')+'>'+o+'</option>';}).join('')+'</select></td>';}
+  var type=(t==="date")?"date":(t==="text"||t==="t")?"text":"number";
+  var cls=(t==="text"||t==="t")?"in text":"in";var w=(t==="text")?"170px":(t==="date"?"122px":"92px");
+  return '<td><input class="'+cls+'" data-'+pfx+'k="'+k+'" data-idx="'+i+'" type="'+type+'" value="'+esc(r[k])+'" style="width:'+w+'"></td>';
+}
+function editTable(cols,rows,pfx,selMap){
+  var head=cols.map(function(c){return '<th style="text-align:left;padding:6px 8px;font-size:11px;color:'+C.faint+';white-space:nowrap">'+c[1]+'</th>';}).join('')+'<th></th>';
+  var body=rows.map(function(r,i){return '<tr>'+cols.map(function(c){return genCell(r,i,c,pfx,selMap||{});}).join('')+'<td><button class="chip" data-'+pfx+'del="'+i+'" style="color:'+C.bad+'">x</button></td></tr>';}).join('');
+  if(!rows.length)body='<tr><td colspan="'+(cols.length+1)+'" style="padding:14px;color:'+C.muted+';font-size:13px">No rows yet.</td></tr>';
+  return '<div style="overflow-x:auto"><table style="min-width:760px"><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div>';
+}
+function bindEdit(arr,pfx,saver){
+  document.querySelectorAll("[data-"+pfx+"k]").forEach(function(inp){var h=function(){arr[+inp.getAttribute("data-idx")][inp.getAttribute("data-"+pfx+"k")]=inp.value;saver();};inp.oninput=h;if(inp.tagName==="SELECT")inp.onchange=h;});
+  document.querySelectorAll("[data-"+pfx+"del]").forEach(function(b){b.onclick=function(){if(!confirm("Delete this row?"))return;arr.splice(+b.getAttribute("data-"+pfx+"del"),1);saver();renderApp();};});
+}
+
+/* ---- deal log ---- */
+var dealLog=[],VERD=["PASS","THIN","MARGINAL","STRONG"];
+var DL_COLS=[["date","Date","date"],["addr","Address","text"],["type","Type","t"],["ask","Ask $","t"],["cap","Cap%","t"],["coc","CoC%","t"],["cf","CF/mo","t"],["verdict","Verdict","sel:VERD"],["status","Status","text"],["notes","Notes","text"]];
+function loadDealLog(){try{var r=store.get("rp_deallog");if(r)dealLog=JSON.parse(r);}catch(e){dealLog=[];}
+  if(!dealLog||!dealLog.length)dealLog=[{id:uid(),date:"2026-06-07",addr:"404 E El Monte St, San Gabriel",type:"SFR 1180sf",ask:"1060000",cap:"",coc:"",cf:"",verdict:"PASS",status:"Revisit w/ ADU",notes:"Neg CF w/o ADU; 10/10 schools; large 8250sf lot"},{id:uid(),date:"2026-06-10",addr:"17882 Baron Cir, Huntington Beach",type:"4-plex 1973",ask:"2195900",cap:"3.15",coc:"",cf:"-1925",verdict:"PASS",status:"Re-engage <=1855K",notes:"AB1482 limits; ADU potential on 10454sf lot"}];}
+function saveDealLog(){try{store.set("rp_deallog",JSON.stringify(dealLog));}catch(e){}}
+function dealLogHTML(){
+  return '<div class="card" style="padding:14px 16px;margin-bottom:14px"><div class="seg">Deal log</div><p style="font-size:12.5px;color:'+C.muted+';margin:6px 0 10px;line-height:1.5">Screened deals and their verdicts. Seeded with your logged deals. Push whatever is open in the Analyze tab straight in.</p><button class="chip" id="dlAdd">+ Row</button> <button class="chip" id="dlFromDeal">Log current analyzer deal</button> <button class="chip" id="dlCsv">Export CSV</button></div><div class="card" style="padding:0;overflow:hidden">'+editTable(DL_COLS,dealLog,"dl",{VERD:VERD})+'</div>';
+}
+function attachDealLog(){
+  bindEdit(dealLog,"dl",saveDealLog);
+  var a=document.getElementById("dlAdd");if(a)a.onclick=function(){dealLog.unshift({id:uid(),date:new Date().toISOString().slice(0,10),addr:"",type:"",ask:"",cap:"",coc:"",cf:"",verdict:"THIN",status:"",notes:""});saveDealLog();renderApp();};
+  var fd=document.getElementById("dlFromDeal");if(fd)fd.onclick=function(){var m=compute(deal);dealLog.unshift({id:uid(),date:new Date().toISOString().slice(0,10),addr:currentName()||deal.address||"",type:deal.unitCount+"-unit"+(deal.aduOn?"+ADU":""),ask:String(num(deal.price)),cap:m.cap.toFixed(2),coc:m.coc.toFixed(1),cf:String(Math.round(m.mcf)),verdict:m.verdict,status:"Screened",notes:""});saveDealLog();view="deallog";renderApp();};
+  var cx=document.getElementById("dlCsv");if(cx)cx.onclick=function(){exportCSVrows(["Date","Address","Type","Ask","Cap%","CoC%","CF/mo","Verdict","Status","Notes"],dealLog.map(function(r){return [r.date,r.addr,r.type,r.ask,r.cap,r.coc,r.cf,r.verdict,r.status,r.notes];}),"deal-log.csv");};
+}
+
+/* ---- comps ---- */
+var comps=[];
+var CO_COLS=[["city","City/Area","text"],["addr","Address","text"],["beds","Bd","t"],["baths","Ba","t"],["sqft","SqFt","t"],["rent","Rent/mo","t"],["date","Date","date"],["source","Source","text"],["notes","Notes","text"]];
+function loadComps(){try{var r=store.get("rp_comps");if(r)comps=JSON.parse(r);}catch(e){comps=[];}
+  if(!comps||!comps.length)comps=[{id:uid(),city:"El Monte",addr:"",beds:"3",baths:"2",sqft:"1200",rent:"3200",date:"",source:"Zillow",notes:"Tier 1 target market"}];}
+function saveComps(){try{store.set("rp_comps",JSON.stringify(comps));}catch(e){}}
+function compsHTML(){return '<div class="card" style="padding:14px 16px;margin-bottom:14px"><div class="seg">Market rent comps</div><p style="font-size:12.5px;color:'+C.muted+';margin:6px 0 10px;line-height:1.5">Track neighborhood rent comps to verify deal and portfolio assumptions before finalizing.</p><button class="chip" id="coAdd">+ Row</button> <button class="chip" id="coCsv">Export CSV</button></div><div class="card" style="padding:0;overflow:hidden">'+editTable(CO_COLS,comps,"co",{})+'</div>';}
+function attachComps(){bindEdit(comps,"co",saveComps);var a=document.getElementById("coAdd");if(a)a.onclick=function(){comps.unshift({id:uid(),city:"",addr:"",beds:"",baths:"",sqft:"",rent:"",date:new Date().toISOString().slice(0,10),source:"",notes:""});saveComps();renderApp();};var cx=document.getElementById("coCsv");if(cx)cx.onclick=function(){exportCSVrows(["City","Address","Beds","Baths","SqFt","Rent","Date","Source","Notes"],comps.map(function(r){return [r.city,r.addr,r.beds,r.baths,r.sqft,r.rent,r.date,r.source,r.notes];}),"rent-comps.csv");};}
+
+/* ---- settings + export/import ---- */
+var SET_FIELDS=[["dpPct","Down payment %"],["rate","Interest rate %"],["termYears","Loan term (yrs)"],["vacPct","Vacancy %"],["taxPct","Property tax %"],["insurance","Insurance $/yr"],["pmPct","Property mgmt %"],["maintPct","Maintenance %"],["closingPct","Closing costs %"]];
+function settingsHTML(){
+  var f=SET_FIELDS.map(function(s){return '<div class="row"><span class="lab">'+s[1]+'</span><input class="in" data-set="'+s[0]+'" value="'+esc(DEFAULTS[s[0]])+'" style="width:110px"></div>';}).join('');
+  return '<div class="grid" style="grid-template-columns:1fr;gap:16px">'+
+    '<div class="card"><div class="seg">Underwriting defaults</div><p style="font-size:12px;color:'+C.faint+';margin:6px 0 4px;line-height:1.5">Applied to new analyzer deals and new portfolio properties. San Gabriel Valley / Orange County investment defaults.</p>'+f+'</div>'+
+    '<div class="card"><div class="seg">Backup &amp; export</div><p style="font-size:12.5px;color:'+C.muted+';margin:6px 0 10px;line-height:1.5">Your data lives in this browser only. Back up to a file to move between devices or hand a partner a snapshot.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="chip" id="setExport">Backup all (JSON)</button><label class="chip" style="cursor:pointer">Restore (JSON)<input type="file" id="setImport" accept="application/json" style="display:none"></label></div></div>'+
+    '<div class="card"><div class="seg">About</div><p style="font-size:12px;color:'+C.faint+';margin:6px 0 0;line-height:1.6">Real Estate Investment Platform - deal screening + portfolio tracking for SoCal rentals. Cash flow is the mandate; negative leverage is disqualifying. Screening aid only - not financial, tax, or investment advice. Rent figures are estimates until verified against current comps.</p></div>'+
+    '</div>';
+}
+function attachSettings(){
+  document.querySelectorAll("[data-set]").forEach(function(inp){inp.oninput=function(){DEFAULTS[inp.getAttribute("data-set")]=num(inp.value);saveSettings();};});
+  var ex=document.getElementById("setExport");if(ex)ex.onclick=exportAllJSON;
+  var im=document.getElementById("setImport");if(im)im.onchange=function(){if(im.files[0])importAllJSON(im.files[0]);};
+}
+function dlFile(name,text,type){var b=new Blob([text],{type:type||"text/plain"});var a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},120);}
+function toCSV(rows){return rows.map(function(r){return r.map(function(c){var s=String(c==null?"":c);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(",");}).join("\n");}
+function exportCSVrows(header,rows,name){dlFile(name,toCSV([header].concat(rows)),"text/csv");}
+function exportPortfolioCSV(){var pf=curPf();var header=PF_COLS.map(function(c){return c[1];}).concat(["P&I/mo","PITI/mo","NOI/yr","CF/mo","Cap%","CoC%","DSCR","Equity"]);
+  var rows=pf.props.map(function(p){var c=pCalc(p);return PF_COLS.map(function(col){return p[col[0]];}).concat([Math.round(c.pi),Math.round(c.piti),Math.round(c.noi),Math.round(c.mcf),c.cap.toFixed(2),c.coc.toFixed(1),c.dscr.toFixed(2),Math.round(c.equity)]);});
+  exportCSVrows(header,rows,"portfolio.csv");}
+function exportAllJSON(){var data={version:1,exported:new Date().toISOString(),deals:deals,portfolios:portfolios,pfActive:pfActive,dealLog:dealLog,comps:comps,settings:DEFAULTS};dlFile("re-platform-backup.json",JSON.stringify(data,null,2),"application/json");}
+function importAllJSON(file){var rd=new FileReader();rd.onload=function(){try{var d=JSON.parse(rd.result);
+  if(d.deals&&d.deals.length){deals=d.deals.map(function(x){return {id:x.id||uid(),name:x.name,deal:normalize(x.deal)};});currentId=deals[0].id;deal=normalize(deals[0].deal);deals[0].deal=deal;save();}
+  if(d.portfolios){portfolios=d.portfolios;pfActive=d.pfActive||0;savePortfolio();}
+  if(d.dealLog){dealLog=d.dealLog;saveDealLog();}
+  if(d.comps){comps=d.comps;saveComps();}
+  if(d.settings){DEFAULTS=Object.assign(DEFAULTS,d.settings);saveSettings();}
+  alert("Backup restored.");renderApp();
+}catch(e){alert("Could not read that backup file.");}};rd.readAsText(file);}
+function loadPlatform(){loadSettings();loadPortfolio();loadDealLog();loadComps();}
+
+/* ============ MILESTONE 2: portfolio detail, tenants, documents, charts ============ */
+var pfDetail=-1;
+var SPEC2=[["name","Name","text"],["addr","Address","text"],["type","Type","sel:PTYPES"],["adu","ADU status","sel:ADUS"],["beds","Beds","n"],["baths","Baths","n"],["homeSqft","Home sq ft","n"],["lotSqft","Lot sq ft","n"],["yearBuilt","Year built","n"],["units","Units","n"],["value","Est. value","$"],["purchaseDate","Purchased","date"]];
+var TSTAT=["Current","Pending","Notice","Vacant","Past"];
+var TEN_COLS=[["name","Name","text"],["phone","Phone","text"],["email","Email","text"],["unit","Unit","text"],["lstart","Lease start","date"],["lend","Lease end","date"],["rent","Rent/mo","text"],["deposit","Deposit","text"],["status","Status","sel"],["notes","Notes","text"]];
+var DCATS=["Leases","Maintenance","Contractors","Contacts","Other"];
+
+function blankProp(nm){return {id:uid(),name:nm||"New property",addr:"",type:"Duplex",purchaseDate:"",price:1200000,dpPct:DEFAULTS.dpPct,rate:DEFAULTS.rate,termYears:DEFAULTS.termYears,loanStart:"",value:1200000,balOverride:0,units:2,rent:6000,vacPct:DEFAULTS.vacPct,taxPct:DEFAULTS.taxPct,insurance:DEFAULTS.insurance,hoa:0,pmPct:DEFAULTS.pmPct,maintPct:DEFAULTS.maintPct,utilities:0,pitiOverride:0,adu:"none",beds:0,baths:0,homeSqft:0,lotSqft:0,yearBuilt:0,notes:"",tenants:[],docs:[]};}
+
+/* ---- overview (adds Detail buttons + charts) ---- */
+function portfolioHTML(){
+  if(pfDetail>=0&&curPf().props[pfDetail])return portfolioDetailHTML(pfDetail);
+  var pf=curPf();
+  var sw='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">'+
+    portfolios.map(function(x,i){return '<button class="chip'+(i===pfActive?' active':'')+'" data-pfsw="'+i+'">'+esc(x.name)+'</button>';}).join('')+
+    '<button class="chip" id="pfAdd">+ Portfolio</button><span style="flex:1"></span>'+
+    '<button class="chip" id="pfRen">Rename</button><button class="chip" id="pfDelP">Delete</button></div>';
+  var kpis='<div id="pfKpis" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px"></div>';
+  var head=PF_COLS.map(function(c){return '<th style="text-align:right;padding:6px 8px;font-size:11px;color:'+C.faint+';white-space:nowrap">'+c[1]+'</th>';}).join('')+'<th></th>';
+  var rows=pf.props.map(function(p,i){return '<tr>'+PF_COLS.map(function(c){return pfCell(p,i,c);}).join('')+'<td style="white-space:nowrap"><button class="chip" data-pdet="'+i+'">Detail</button> <button class="chip" data-pdel="'+i+'" style="color:'+C.bad+'">x</button></td></tr>';}).join('');
+  if(!pf.props.length)rows='<tr><td colspan="'+(PF_COLS.length+1)+'" style="padding:16px;color:'+C.muted+';font-size:13px">No properties yet. Click "+ Add property".</td></tr>';
+  var table='<div class="card" style="padding:0;overflow:hidden"><div class="seg" style="padding:12px 16px 0">Owned properties</div>'+
+    '<div style="padding:10px 16px"><button class="chip" id="pfAddProp">+ Add property</button> <button class="chip" id="pfCsv">Export CSV</button> <span style="font-size:11px;color:'+C.faint+'">Open <b>Detail</b> for specs, tenants &amp; documents. PITI* editable; blank = auto.</span></div>'+
+    '<div style="overflow-x:auto"><table style="min-width:1200px"><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  return sw+kpis+table+'<div id="pfCharts" style="margin-top:16px"></div><div id="pfResults" style="margin-top:16px"></div>';
+}
+function refreshPf(){
+  var pf=curPf(),res=pf.props.map(pCalc);
+  var T=function(f){return res.reduce(function(s,c){return s+c[f];},0);};
+  var totCf=T("mcf"),totEq=T("equity"),totInv=T("cashInv"),totPi=T("pi"),totNoi=T("noi");
+  var totPrice=pf.props.reduce(function(s,p){return s+num(p.price);},0)||1;
+  var kp=[["Monthly cash flow",money(totCf),totCf<0?C.bad:C.go],["Annual cash flow",money(totCf*12),totCf<0?C.bad:C.go],
+    ["Portfolio equity",money(totEq),C.ink],["Total invested",money(totInv),C.ink],
+    ["Blended cap",pct(totNoi/totPrice*100),C.ink],["Blended CoC",pct(totInv>0?totCf*12/totInv*100:0),totCf<0?C.bad:C.go],
+    ["Total P&I / mo",money(totPi),C.ink],["Properties",String(pf.props.length),C.ink]];
+  var kc=document.getElementById("pfKpis");
+  if(kc)kc.innerHTML=kp.map(function(k){return '<div class="card" style="padding:12px 14px"><div class="seg" style="font-size:10px">'+k[0]+'</div><div class="out" style="font-size:20px;font-weight:700;margin-top:4px;color:'+k[2]+'">'+k[1]+'</div></div>';}).join('');
+  var cc=document.getElementById("pfCharts");
+  if(cc)cc.innerHTML=pf.props.length?('<div class="grid" style="grid-template-columns:1fr 1fr;gap:16px"><div class="card"><div class="seg">Revenue vs expenses (monthly)</div>'+svgRevExp(pf.props,res)+'</div><div class="card"><div class="seg">Monthly cash flow</div>'+svgCash(pf.props,res)+'</div></div>'):"";
+  var rc=document.getElementById("pfResults");if(!rc)return;
+  if(!pf.props.length){rc.innerHTML="";return;}
+  var h='<div class="card" style="padding:0;overflow:hidden"><div class="seg" style="padding:12px 16px 0">Computed results</div><div style="overflow-x:auto"><table style="min-width:820px"><thead><tr>'+
+    ["Property","P&I/mo","PITI/mo","NOI/yr","Cash flow/mo","Cap","CoC","DSCR","Equity","% paid"].map(function(x){return '<th style="text-align:right;padding:7px 10px;font-size:11px;color:'+C.faint+'">'+x+'</th>';}).join('')+'</tr></thead><tbody>';
+  res.forEach(function(c,i){h+='<tr><td style="text-align:left;padding:7px 10px;font-size:13px">'+esc(pf.props[i].name)+'</td>'+
+    tdo(money(c.pi))+tdo(money(c.piti))+tdo(money(c.noi))+tdo(money(c.mcf),c.mcf<0?C.bad:C.go)+tdo(pct(c.cap))+tdo(pct(c.coc),c.coc<0?C.bad:C.go)+tdo(mult(c.dscr))+tdo(money(c.equity))+tdo(pct(c.paidOff))+'</tr>';});
+  h+='</tbody></table></div></div>';rc.innerHTML=h;
+}
+function attachPortfolio(){
+  if(pfDetail>=0&&curPf().props[pfDetail]){attachPortfolioDetail();return;}
+  document.querySelectorAll("[data-pfsw]").forEach(function(b){b.onclick=function(){pfActive=+b.getAttribute("data-pfsw");pfDetail=-1;savePortfolio();renderApp();};});
+  var ap=document.getElementById("pfAdd");if(ap)ap.onclick=function(){var nm=prompt("New portfolio name:","Portfolio "+(portfolios.length+1));if(nm===null)return;portfolios.push({id:uid(),name:nm||"Portfolio",props:[]});pfActive=portfolios.length-1;pfDetail=-1;savePortfolio();renderApp();};
+  var rn=document.getElementById("pfRen");if(rn)rn.onclick=function(){var nm=prompt("Rename portfolio:",curPf().name);if(nm===null)return;curPf().name=nm||curPf().name;savePortfolio();renderApp();};
+  var dp=document.getElementById("pfDelP");if(dp)dp.onclick=function(){if(portfolios.length<=1){alert("Keep at least one portfolio.");return;}if(!confirm("Delete this portfolio and its properties?"))return;portfolios.splice(pfActive,1);pfActive=0;pfDetail=-1;savePortfolio();renderApp();};
+  var apr=document.getElementById("pfAddProp");if(apr)apr.onclick=function(){curPf().props.push(blankProp());savePortfolio();renderApp();};
+  document.querySelectorAll("[data-pdel]").forEach(function(b){b.onclick=function(){if(!confirm("Delete this property?"))return;curPf().props.splice(+b.getAttribute("data-pdel"),1);savePortfolio();renderApp();};});
+  document.querySelectorAll("[data-pdet]").forEach(function(b){b.onclick=function(){pfDetail=+b.getAttribute("data-pdet");renderApp();};});
+  document.querySelectorAll("[data-pk]").forEach(function(inp){var h=function(){var i=+inp.getAttribute("data-idx"),k=inp.getAttribute("data-pk"),t=inp.getAttribute("data-t");var p=curPf().props[i];p[k]=(t==="text"||t==="date"||t==="sel")?inp.value:num(inp.value);savePortfolio();refreshPf();};inp.oninput=h;if(inp.tagName==="SELECT")inp.onchange=h;});
+  var cx=document.getElementById("pfCsv");if(cx)cx.onclick=exportPortfolioCSV;
+  refreshPf();
+}
+
+/* ---- detail view ---- */
+function pdSummaryHTML(c){var row=function(l,v,col){return '<div class="row"><span class="lab">'+l+'</span><span class="out"'+(col?' style="color:'+col+'"':'')+'>'+v+'</span></div>';};
+  return row("Monthly P&I",money(c.pi))+row("Monthly PITI",money(c.piti))+row("Monthly cash flow",money(c.mcf),c.mcf<0?C.bad:C.go)+row("NOI / yr",money(c.noi))+row("Cap rate",pct(c.cap))+row("Cash-on-cash",pct(c.coc),c.coc<0?C.bad:C.go)+row("DSCR",mult(c.dscr))+row("Current equity",money(c.equity))+row("Loan paid off",pct(c.paidOff));
+}
+function specField(idx,s){var k=s[0],lab=s[1],t=s[2],p=curPf().props[idx];
+  var top='<div><div style="font-size:11px;color:'+C.faint+';margin-bottom:3px">'+lab+'</div>';
+  if(t.indexOf("sel:")===0){var arr=t.slice(4)==="PTYPES"?PTYPES:ADUS;
+    return top+'<select class="in" data-pd="'+k+'" data-t="sel" style="text-align:left">'+arr.map(function(o){return '<option'+(p[k]===o?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div>';}
+  var tp=t==="date"?"date":(t==="text"?"text":"number");var cls=t==="text"?"in text":"in";
+  return top+'<input class="'+cls+'" data-pd="'+k+'" data-t="'+t+'" type="'+tp+'" value="'+esc(p[k])+'"></div>';
+}
+function tenCell(ti,c,t){var k=c[0],ty=c[2];
+  if(ty==="sel"){return '<td><select class="in" data-tk="'+k+'" data-tidx="'+ti+'" style="width:104px;text-align:left">'+TSTAT.map(function(o){return '<option'+(t[k]===o?' selected':'')+'>'+o+'</option>';}).join('')+'</select></td>';}
+  var tp=ty==="date"?"date":"text";var w=ty==="date"?"120px":(ty==="text"?"144px":"92px");
+  return '<td><input class="in text" data-tk="'+k+'" data-tidx="'+ti+'" type="'+tp+'" value="'+esc(t[k])+'" style="width:'+w+'"></td>';
+}
+function tenantsCard(p){
+  var head=TEN_COLS.map(function(c){return '<th style="text-align:left;padding:6px 8px;font-size:11px;color:'+C.faint+'">'+c[1]+'</th>';}).join('')+'<th></th>';
+  var rows=p.tenants.map(function(t,ti){return '<tr>'+TEN_COLS.map(function(c){return tenCell(ti,c,t);}).join('')+'<td><button class="chip" data-tdel="'+ti+'" style="color:'+C.bad+'">x</button></td></tr>';}).join('');
+  if(!p.tenants.length)rows='<tr><td colspan="'+(TEN_COLS.length+1)+'" style="padding:12px;color:'+C.muted+';font-size:13px">No tenants yet.</td></tr>';
+  return '<div class="card" style="padding:0;overflow:hidden"><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px"><div class="seg">Tenants</div><button class="chip" id="tenAdd">+ Tenant</button></div><div style="overflow-x:auto"><table style="min-width:960px"><thead><tr>'+head+'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+function docsCard(p){
+  var rows=p.docs.map(function(d,di){
+    var href=d.url?d.url:('Documents/'+encodeURIComponent(p.name)+'/'+encodeURIComponent(d.cat||"Other")+'/'+encodeURIComponent(d.file||""));
+    var open=(d.url||d.file)?'<a class="lab" style="color:'+C.go+'" href="'+esc(href)+'" target="_blank" rel="noopener">Open</a>':'<span style="color:'+C.faint+'">-</span>';
+    return '<tr>'+
+      '<td><select class="in" data-dk="cat" data-didx="'+di+'" style="width:118px;text-align:left">'+DCATS.map(function(o){return '<option'+(d.cat===o?' selected':'')+'>'+o+'</option>';}).join('')+'</select></td>'+
+      '<td><input class="in text" data-dk="title" data-didx="'+di+'" value="'+esc(d.title)+'" style="width:150px"></td>'+
+      '<td><input class="in text" data-dk="url" data-didx="'+di+'" value="'+esc(d.url)+'" placeholder="https://..." style="width:170px"></td>'+
+      '<td><input class="in text" data-dk="file" data-didx="'+di+'" value="'+esc(d.file)+'" placeholder="lease.pdf" style="width:130px"></td>'+
+      '<td><input class="in text" data-dk="date" data-didx="'+di+'" type="date" value="'+esc(d.date)+'" style="width:120px"></td>'+
+      '<td><input class="in text" data-dk="notes" data-didx="'+di+'" value="'+esc(d.notes)+'" style="width:140px"></td>'+
+      '<td style="white-space:nowrap">'+open+' <button class="chip" data-ddel="'+di+'" style="color:'+C.bad+'">x</button></td></tr>';
+  }).join('');
+  if(!p.docs.length)rows='<tr><td colspan="7" style="padding:12px;color:'+C.muted+';font-size:13px">No documents yet.</td></tr>';
+  var th=function(t){return '<th style="text-align:left;padding:6px 8px;font-size:11px;color:'+C.faint+'">'+t+'</th>';};
+  return '<div class="card" style="padding:0;overflow:hidden"><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px"><div class="seg">Documents</div><button class="chip" id="docAdd">+ Document</button></div>'+
+    '<p style="font-size:11.5px;color:'+C.faint+';margin:0 16px 8px;line-height:1.5"><b>Open</b> uses the Cloud URL if present, otherwise the local path <b>Documents/'+esc(p.name)+'/&lt;Category&gt;/&lt;file&gt;</b> (works when the app is opened from your computer).</p>'+
+    '<div style="overflow-x:auto"><table style="min-width:940px"><thead><tr>'+th("Category")+th("Title")+th("Cloud URL")+th("Local file")+th("Date")+th("Notes")+'<th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+function portfolioDetailHTML(idx){
+  var p=curPf().props[idx];p.tenants=p.tenants||[];p.docs=p.docs||[];
+  var c=pCalc(p);
+  var specCard='<div class="card"><div class="seg">'+esc(p.name||"Property")+' - specifications</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:10px">'+SPEC2.map(function(s){return specField(idx,s);}).join('')+'</div>'+
+    '<div style="font-size:11.5px;color:'+C.faint+';margin-top:10px;line-height:1.5">'+(num(p.beds)||0)+' bd / '+(num(p.baths)||0)+' ba - '+Number(num(p.homeSqft)||0).toLocaleString()+' sqft home / '+Number(num(p.lotSqft)||0).toLocaleString()+' sqft lot - built '+(p.yearBuilt||"-")+' - ADU: '+esc(p.adu||"none")+'</div></div>';
+  var summary='<div class="card"><div class="seg">Financials</div><div id="pdSummary" style="margin-top:6px">'+pdSummaryHTML(c)+'</div></div>';
+  return '<div style="margin-bottom:12px"><button class="chip" id="pdBack">&larr; Back to portfolio</button></div>'+
+    '<div class="grid" style="grid-template-columns:minmax(0,1fr) 300px;gap:16px;margin-bottom:16px">'+specCard+summary+'</div>'+
+    tenantsCard(p)+'<div style="height:16px"></div>'+docsCard(p);
+}
+function attachPortfolioDetail(){
+  var idx=pfDetail,p=curPf().props[idx];p.tenants=p.tenants||[];p.docs=p.docs||[];
+  var b=document.getElementById("pdBack");if(b)b.onclick=function(){pfDetail=-1;renderApp();};
+  document.querySelectorAll("[data-pd]").forEach(function(inp){var h=function(){var k=inp.getAttribute("data-pd"),t=inp.getAttribute("data-t");p[k]=(t==="text"||t==="date"||t==="sel")?inp.value:num(inp.value);savePortfolio();var sm=document.getElementById("pdSummary");if(sm)sm.innerHTML=pdSummaryHTML(pCalc(p));};inp.oninput=h;if(inp.tagName==="SELECT")inp.onchange=h;});
+  var ta=document.getElementById("tenAdd");if(ta)ta.onclick=function(){p.tenants.push({name:"",phone:"",email:"",unit:"",lstart:"",lend:"",rent:"",deposit:"",status:"Current",notes:""});savePortfolio();renderApp();};
+  document.querySelectorAll("[data-tk]").forEach(function(inp){var h=function(){p.tenants[+inp.getAttribute("data-tidx")][inp.getAttribute("data-tk")]=inp.value;savePortfolio();};inp.oninput=h;if(inp.tagName==="SELECT")inp.onchange=h;});
+  document.querySelectorAll("[data-tdel]").forEach(function(bt){bt.onclick=function(){if(!confirm("Remove tenant?"))return;p.tenants.splice(+bt.getAttribute("data-tdel"),1);savePortfolio();renderApp();};});
+  var da=document.getElementById("docAdd");if(da)da.onclick=function(){p.docs.push({cat:"Leases",title:"",url:"",file:"",date:new Date().toISOString().slice(0,10),notes:""});savePortfolio();renderApp();};
+  document.querySelectorAll("[data-dk]").forEach(function(inp){inp.oninput=function(){p.docs[+inp.getAttribute("data-didx")][inp.getAttribute("data-dk")]=inp.value;savePortfolio();};inp.onchange=function(){var k=inp.getAttribute("data-dk");if(k==="cat"||k==="file"||k==="url")renderApp();};});
+  document.querySelectorAll("[data-ddel]").forEach(function(bt){bt.onclick=function(){if(!confirm("Remove document?"))return;p.docs.splice(+bt.getAttribute("data-ddel"),1);savePortfolio();renderApp();};});
+}
+
+/* ---- inline SVG charts (no dependency) ---- */
+function svgRevExp(props,res){
+  if(!props.length)return "";
+  var rows=props.map(function(p,i){var pm=num(p.rent)*(num(p.pmPct)/100),maint=num(p.price)*(num(p.maintPct)/100)/12,other=num(p.hoa)+pm+maint+num(p.utilities);
+    return {name:p.name||"Property",rent:num(p.rent),piti:res[i].piti,other:other,cost:res[i].piti+other};});
+  var max=Math.max(1,Math.max.apply(null,rows.map(function(r){return Math.max(r.rent,r.cost);})));
+  var W=600,L=120,BW=380,rh=54,H=rows.length*rh+6,sc=function(v){return BW*v/max;};
+  var s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">';
+  rows.forEach(function(r,i){var y=i*rh+10;
+    s+='<text x="0" y="'+(y+12)+'" font-size="12" fill="'+C.ink+'">'+esc(String(r.name).slice(0,16))+'</text>';
+    s+='<rect x="'+L+'" y="'+y+'" width="'+sc(r.rent).toFixed(1)+'" height="14" rx="3" fill="'+C.go+'"/>';
+    s+='<text x="'+(L+sc(r.rent)+6).toFixed(1)+'" y="'+(y+11)+'" font-size="10.5" fill="'+C.muted+'">'+money(r.rent)+'</text>';
+    var y2=y+18;
+    s+='<rect x="'+L+'" y="'+y2+'" width="'+sc(r.piti).toFixed(1)+'" height="14" rx="3" fill="'+C.bad+'"/>';
+    s+='<rect x="'+(L+sc(r.piti)).toFixed(1)+'" y="'+y2+'" width="'+sc(r.other).toFixed(1)+'" height="14" fill="#E0A9A2"/>';
+    s+='<text x="'+(L+sc(r.cost)+6).toFixed(1)+'" y="'+(y2+11)+'" font-size="10.5" fill="'+C.muted+'">'+money(r.cost)+'</text>';
+  });
+  s+='</svg>';
+  return s+'<div style="display:flex;gap:14px;font-size:11px;color:'+C.muted+';margin-top:4px;flex-wrap:wrap">'+
+    '<span><span style="display:inline-block;width:10px;height:10px;background:'+C.go+';border-radius:2px"></span> Rent</span>'+
+    '<span><span style="display:inline-block;width:10px;height:10px;background:'+C.bad+';border-radius:2px"></span> PITI</span>'+
+    '<span><span style="display:inline-block;width:10px;height:10px;background:#E0A9A2;border-radius:2px"></span> Other op ex</span></div>';
+}
+function svgCash(props,res){
+  if(!props.length)return "";
+  var vals=props.map(function(p,i){return {name:p.name||"Property",v:res[i].mcf};});
+  var max=Math.max(1,Math.max.apply(null,vals.map(function(x){return Math.abs(x.v);})));
+  var W=600,L=120,BW=360,rh=32,H=vals.length*rh+6;
+  var s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">';
+  vals.forEach(function(r,i){var y=i*rh+10;var w=BW*Math.abs(r.v)/max;var col=r.v<0?C.bad:C.go;
+    s+='<text x="0" y="'+(y+13)+'" font-size="12" fill="'+C.ink+'">'+esc(String(r.name).slice(0,16))+'</text>';
+    s+='<rect x="'+L+'" y="'+y+'" width="'+w.toFixed(1)+'" height="16" rx="3" fill="'+col+'"/>';
+    s+='<text x="'+(L+w+6).toFixed(1)+'" y="'+(y+13)+'" font-size="10.5" fill="'+col+'">'+money(r.v)+'</text>';
+  });
+  s+='</svg>';return s;
+}
+
+/* ============ MILESTONE 2b: fit-to-screen redesign (portfolio per-property editor, card tabs) ============ */
+var pfSub="overview",pSel=0;
+function switcherHTML(){return '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">'+
+  portfolios.map(function(x,i){return '<button class="chip'+(i===pfActive?' active':'')+'" data-pfsw="'+i+'">'+esc(x.name)+'</button>';}).join('')+
+  '<button class="chip" id="pfAdd">+ Portfolio</button><span style="flex:1"></span>'+
+  '<button class="chip" id="pfRen">Rename</button><button class="chip" id="pfDelP">Delete</button></div>';}
+function portfolioHTML(){
+  var subnav='<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">'+
+    '<button class="tab'+(pfSub==="overview"?" active":"")+'" data-pfsub="overview">Overview</button>'+
+    '<button class="tab'+(pfSub==="edit"?" active":"")+'" data-pfsub="edit">Edit properties</button></div>';
+  return switcherHTML()+subnav+(pfSub==="edit"?editorHTML():overviewHTML());
+}
+function overviewHTML(){
+  return '<div id="pfKpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px"></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px">'+
+      '<div class="card"><div class="seg">Monthly cash flow by property</div><div id="pfChartCf" style="margin-top:8px"></div></div>'+
+      '<div class="card"><div class="seg">Revenue vs expenses (monthly)</div><div id="pfChartRe" style="margin-top:8px"></div></div></div>'+
+    '<div class="card" style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;align-items:center"><div class="seg">Loan life &amp; progress</div><button class="chip" id="pfCsv">Export CSV</button></div><div id="pfLoanLife" style="margin-top:8px"></div></div>'+
+    '<div id="pfResults"></div>';
+}
+function loanLifeHTML(){
+  var pf=curPf();if(!pf.props.length)return '<div style="color:'+C.muted+';font-size:13px">No properties yet - add them in Edit properties.</div>';
+  var th=function(t,al){return '<th style="text-align:'+(al||"right")+';padding:6px 10px;font-size:11px;color:'+C.faint+'">'+t+'</th>';};
+  var rows=pf.props.map(function(p){var n=num(p.termYears)*12;var made=Math.min(n,mBetween(p.loanStart||p.purchaseDate));
+    var payoff="-";var st=p.loanStart||p.purchaseDate;if(st){var d=new Date(st);d.setMonth(d.getMonth()+n-1);payoff=d.toLocaleDateString('en-US',{month:'short',year:'numeric'});}
+    var c=pCalc(p);return '<tr><td style="text-align:left;padding:6px 10px;font-size:13px">'+esc(p.name)+'</td>'+tdo(payoff)+tdo(String(made))+tdo(String(n-made))+tdo(pct(c.paidOff))+'</tr>';}).join('');
+  return '<div style="overflow-x:auto"><table style="width:100%"><thead><tr>'+th("Property","left")+th("Payoff")+th("Pmts made")+th("Left")+th("% paid")+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+function refreshPf(){
+  var pf=curPf(),res=pf.props.map(pCalc);
+  var T=function(f){return res.reduce(function(s,c){return s+c[f];},0);};
+  var totCf=T("mcf"),totEq=T("equity"),totInv=T("cashInv"),totPi=T("pi"),totNoi=T("noi");
+  var totPrice=pf.props.reduce(function(s,p){return s+num(p.price);},0)||1;
+  var kp=[["Monthly cash flow",money(totCf),totCf<0?C.bad:C.go],["Annual cash flow",money(totCf*12),totCf<0?C.bad:C.go],
+    ["Portfolio equity",money(totEq),C.ink],["Total invested",money(totInv),C.ink],
+    ["Blended cap",pct(totNoi/totPrice*100),C.ink],["Blended CoC",pct(totInv>0?totCf*12/totInv*100:0),totCf<0?C.bad:C.go],
+    ["Total P&I / mo",money(totPi),C.ink],["Properties",String(pf.props.length),C.ink]];
+  var kc=document.getElementById("pfKpis");if(kc)kc.innerHTML=kp.map(function(k){return '<div class="card" style="padding:12px 14px"><div class="seg" style="font-size:10px">'+k[0]+'</div><div class="out" style="font-size:20px;font-weight:700;margin-top:4px;color:'+k[2]+'">'+k[1]+'</div></div>';}).join('');
+  var cf=document.getElementById("pfChartCf");if(cf)cf.innerHTML=pf.props.length?svgCash(pf.props,res):'<div style="color:'+C.muted+';font-size:13px">No properties yet.</div>';
+  var re=document.getElementById("pfChartRe");if(re)re.innerHTML=pf.props.length?svgRevExp(pf.props,res):'<div style="color:'+C.muted+';font-size:13px">No properties yet.</div>';
+  var ll=document.getElementById("pfLoanLife");if(ll)ll.innerHTML=loanLifeHTML();
+  var rc=document.getElementById("pfResults");if(!rc)return;
+  if(!pf.props.length){rc.innerHTML="";return;}
+  var th=function(t,al){return '<th style="text-align:'+(al||"right")+';padding:7px 10px;font-size:11px;color:'+C.faint+'">'+t+'</th>';};
+  var h='<div class="card" style="padding:0;overflow:hidden"><div class="seg" style="padding:12px 16px 0">Per-property results</div><div style="overflow-x:auto"><table style="width:100%"><thead><tr>'+th("Property","left")+th("CF/mo")+th("PITI/mo")+th("Cap")+th("CoC")+th("DSCR")+th("Equity")+'</tr></thead><tbody>';
+  res.forEach(function(c,i){h+='<tr><td style="text-align:left;padding:7px 10px;font-size:13px">'+esc(pf.props[i].name)+'</td>'+tdo(money(c.mcf),c.mcf<0?C.bad:C.go)+tdo(money(c.piti))+tdo(pct(c.cap))+tdo(pct(c.coc),c.coc<0?C.bad:C.go)+tdo(mult(c.dscr))+tdo(money(c.equity))+'</tr>';});
+  h+='</tbody></table></div></div>';rc.innerHTML=h;
+}
+/* editor */
+function pin(idx,k,lab,type){var p=curPf().props[idx];
+  var top='<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;color:'+C.faint+'">'+lab+'</span>';
+  if(type.indexOf("sel:")===0){var arr=type.slice(4)==="PTYPES"?PTYPES:ADUS;
+    return top+'<select class="in" data-pd="'+k+'" data-t="sel" style="text-align:left">'+arr.map(function(o){return '<option'+(p[k]===o?' selected':'')+'>'+o+'</option>';}).join('')+'</select></div>';}
+  var tp=type==="date"?"date":(type==="text"?"text":"number");var cls=type==="text"?"in text":"in";
+  return top+'<input class="'+cls+'" data-pd="'+k+'" data-t="'+type+'" type="'+tp+'" value="'+esc(p[k])+'"></div>';
+}
+function catCard(title,items){return '<div class="card"><div class="seg">'+title+'</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-top:10px">'+items+'</div></div>';}
+function editorHTML(){
+  var pf=curPf();
+  if(!pf.props.length)return '<div class="card"><p style="font-size:13.5px;color:'+C.muted+';margin:0 0 12px">No properties in this portfolio yet.</p><button class="chip" id="edAdd">+ Add property</button></div>';
+  if(pSel>=pf.props.length)pSel=0;var i=pSel,p=pf.props[i];p.tenants=p.tenants||[];p.docs=p.docs||[];
+  var chips=pf.props.map(function(x,j){return '<button class="chip'+(j===pSel?' active':'')+'" data-psel="'+j+'">'+esc(x.name||("Property "+(j+1)))+'</button>';}).join('');
+  var selrow='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">'+chips+'<button class="chip" id="edAdd">+ Add</button><span style="flex:1"></span><button class="chip" id="edDel" style="color:'+C.bad+'">Delete property</button></div>';
+  var specs=catCard("Property &amp; specs",pin(i,"name","Name","text")+pin(i,"addr","Address","text")+pin(i,"type","Type","sel:PTYPES")+pin(i,"adu","ADU status","sel:ADUS")+pin(i,"beds","Beds","n")+pin(i,"baths","Baths","n")+pin(i,"homeSqft","Home sq ft","n")+pin(i,"lotSqft","Lot sq ft","n")+pin(i,"yearBuilt","Year built","n")+pin(i,"units","Units","n")+pin(i,"value","Est. value","$")+pin(i,"purchaseDate","Purchased","date"));
+  var fin=catCard("Purchase &amp; financing",pin(i,"price","Purchase price","$")+pin(i,"dpPct","Down %","%")+pin(i,"rate","Rate %","%")+pin(i,"termYears","Term (yrs)","n")+pin(i,"loanStart","Loan start","date")+pin(i,"balOverride","Loan balance override","$"));
+  var inc=catCard("Income",pin(i,"rent","Gross rent / mo","$")+pin(i,"vacPct","Vacancy %","%"));
+  var exp=catCard("Operating expenses",pin(i,"taxPct","Property tax %","%")+pin(i,"insurance","Insurance / yr","$")+pin(i,"hoa","HOA / mo","$")+pin(i,"pmPct","Mgmt %","%")+pin(i,"maintPct","Maintenance %","%")+pin(i,"utilities","Utilities / mo","$")+pin(i,"pitiOverride","PITI override / mo","$"));
+  var summary='<div class="card"><div class="seg">Results</div><div id="pdSummary" style="margin-top:6px">'+pdSummaryHTML(pCalc(p))+'</div></div>';
+  return selrow+'<div class="grid"><div class="col">'+specs+fin+inc+exp+'</div><div class="col results">'+summary+'</div></div><div style="height:16px"></div>'+tenantsCard(p)+'<div style="height:16px"></div>'+docsCard(p);
+}
+function attachPortfolio(){
+  document.querySelectorAll("[data-pfsw]").forEach(function(b){b.onclick=function(){pfActive=+b.getAttribute("data-pfsw");pSel=0;savePortfolio();renderApp();};});
+  var ap=document.getElementById("pfAdd");if(ap)ap.onclick=function(){var nm=prompt("New portfolio name:","Portfolio "+(portfolios.length+1));if(nm===null)return;portfolios.push({id:uid(),name:nm||"Portfolio",props:[]});pfActive=portfolios.length-1;pSel=0;savePortfolio();renderApp();};
+  var rn=document.getElementById("pfRen");if(rn)rn.onclick=function(){var nm=prompt("Rename portfolio:",curPf().name);if(nm===null)return;curPf().name=nm||curPf().name;savePortfolio();renderApp();};
+  var dpb=document.getElementById("pfDelP");if(dpb)dpb.onclick=function(){if(portfolios.length<=1){alert("Keep at least one portfolio.");return;}if(!confirm("Delete this portfolio and its properties?"))return;portfolios.splice(pfActive,1);pfActive=0;pSel=0;savePortfolio();renderApp();};
+  document.querySelectorAll("[data-pfsub]").forEach(function(b){b.onclick=function(){pfSub=b.getAttribute("data-pfsub");renderApp();};});
+  if(pfSub==="edit"){attachEditor();return;}
+  var cx=document.getElementById("pfCsv");if(cx)cx.onclick=exportPortfolioCSV;
+  refreshPf();
+}
+function attachEditor(){
+  var ea=document.getElementById("edAdd");if(ea)ea.onclick=function(){curPf().props.push(blankProp());pSel=curPf().props.length-1;savePortfolio();renderApp();};
+  if(!curPf().props.length)return;
+  var p=curPf().props[pSel];p.tenants=p.tenants||[];p.docs=p.docs||[];
+  document.querySelectorAll("[data-psel]").forEach(function(b){b.onclick=function(){pSel=+b.getAttribute("data-psel");renderApp();};});
+  var ed=document.getElementById("edDel");if(ed)ed.onclick=function(){if(!confirm("Delete this property?"))return;curPf().props.splice(pSel,1);pSel=0;savePortfolio();renderApp();};
+  document.querySelectorAll("[data-pd]").forEach(function(inp){var h=function(){var k=inp.getAttribute("data-pd"),t=inp.getAttribute("data-t");p[k]=(t==="text"||t==="date"||t==="sel")?inp.value:num(inp.value);savePortfolio();var sm=document.getElementById("pdSummary");if(sm)sm.innerHTML=pdSummaryHTML(pCalc(p));};inp.oninput=h;if(inp.tagName==="SELECT")inp.onchange=h;});
+  var ta=document.getElementById("tenAdd");if(ta)ta.onclick=function(){p.tenants.push({name:"",phone:"",email:"",unit:"",lstart:"",lend:"",rent:"",deposit:"",status:"Current",notes:""});savePortfolio();renderApp();};
+  document.querySelectorAll("[data-tk]").forEach(function(inp){var h=function(){p.tenants[+inp.getAttribute("data-tidx")][inp.getAttribute("data-tk")]=inp.value;savePortfolio();};inp.oninput=h;if(inp.tagName==="SELECT")inp.onchange=h;});
+  document.querySelectorAll("[data-tdel]").forEach(function(bt){bt.onclick=function(){if(!confirm("Remove tenant?"))return;p.tenants.splice(+bt.getAttribute("data-tdel"),1);savePortfolio();renderApp();};});
+  var da=document.getElementById("docAdd");if(da)da.onclick=function(){p.docs.push({cat:"Leases",title:"",url:"",file:"",date:new Date().toISOString().slice(0,10),notes:""});savePortfolio();renderApp();};
+  document.querySelectorAll("[data-dk]").forEach(function(inp){inp.oninput=function(){p.docs[+inp.getAttribute("data-didx")][inp.getAttribute("data-dk")]=inp.value;savePortfolio();};inp.onchange=function(){var k=inp.getAttribute("data-dk");if(k==="cat"||k==="file"||k==="url")renderApp();};});
+  document.querySelectorAll("[data-ddel]").forEach(function(bt){bt.onclick=function(){if(!confirm("Remove document?"))return;p.docs.splice(+bt.getAttribute("data-ddel"),1);savePortfolio();renderApp();};});
+}
+/* ---- card-entry layout for deal log + comps (no horizontal scroll) ---- */
+function genField(r,i,c,pfx,selMap){var k=c[0],t=c[2];
+  if(t.indexOf("sel:")===0){var arr=(selMap&&selMap[t.slice(4)])||[];return '<select class="in" data-'+pfx+'k="'+k+'" data-idx="'+i+'" style="text-align:left">'+arr.map(function(o){return '<option'+(r[k]===o?' selected':'')+'>'+o+'</option>';}).join('')+'</select>';}
+  var tp=t==="date"?"date":(t==="text"||t==="t")?"text":"number";var cls=(t==="text"||t==="t")?"in text":"in";
+  return '<input class="'+cls+'" data-'+pfx+'k="'+k+'" data-idx="'+i+'" type="'+tp+'" value="'+esc(r[k])+'">';
+}
+function entryCard(cols,r,i,pfx,selMap){
+  var fields=cols.map(function(c){return '<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;color:'+C.faint+'">'+c[1]+'</span>'+genField(r,i,c,pfx,selMap)+'</div>';}).join('');
+  return '<div class="card" style="margin-bottom:12px"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">'+fields+'</div><div style="margin-top:10px;text-align:right"><button class="chip" data-'+pfx+'del="'+i+'" style="color:'+C.bad+'">Remove</button></div></div>';
+}
+function dealLogHTML(){
+  var top='<div class="card" style="padding:14px 16px;margin-bottom:14px"><div class="seg">Deal log</div><p style="font-size:12.5px;color:'+C.muted+';margin:6px 0 10px;line-height:1.5">Screened deals and verdicts. Seeded with your logged deals. Push whatever is open in Analyze straight in.</p><button class="chip" id="dlAdd">+ Deal</button> <button class="chip" id="dlFromDeal">Log current analyzer deal</button> <button class="chip" id="dlCsv">Export CSV</button></div>';
+  var body=dealLog.length?dealLog.map(function(r,i){return entryCard(DL_COLS,r,i,"dl",{VERD:VERD});}).join(''):'<div class="card" style="color:'+C.muted+';font-size:13px">No deals logged yet.</div>';
+  return top+body;
+}
+function attachDealLog(){
+  bindEdit(dealLog,"dl",saveDealLog);
+  var a=document.getElementById("dlAdd");if(a)a.onclick=function(){dealLog.unshift({id:uid(),date:new Date().toISOString().slice(0,10),addr:"",type:"",ask:"",cap:"",coc:"",cf:"",verdict:"THIN",status:"",notes:""});saveDealLog();renderApp();};
+  var fd=document.getElementById("dlFromDeal");if(fd)fd.onclick=function(){var m=compute(deal);dealLog.unshift({id:uid(),date:new Date().toISOString().slice(0,10),addr:currentName()||deal.address||"",type:deal.unitCount+"-unit"+(deal.aduOn?"+ADU":""),ask:String(num(deal.price)),cap:m.cap.toFixed(2),coc:m.coc.toFixed(1),cf:String(Math.round(m.mcf)),verdict:m.verdict,status:"Screened",notes:""});saveDealLog();view="deallog";renderApp();};
+  var cx=document.getElementById("dlCsv");if(cx)cx.onclick=function(){exportCSVrows(["Date","Address","Type","Ask","Cap%","CoC%","CF/mo","Verdict","Status","Notes"],dealLog.map(function(r){return [r.date,r.addr,r.type,r.ask,r.cap,r.coc,r.cf,r.verdict,r.status,r.notes];}),"deal-log.csv");};
+}
+function compsHTML(){
+  var top='<div class="card" style="padding:14px 16px;margin-bottom:14px"><div class="seg">Market rent comps</div><p style="font-size:12.5px;color:'+C.muted+';margin:6px 0 10px;line-height:1.5">Track neighborhood rent comps to verify deal and portfolio assumptions.</p><button class="chip" id="coAdd">+ Comp</button> <button class="chip" id="coCsv">Export CSV</button></div>';
+  var body=comps.length?comps.map(function(r,i){return entryCard(CO_COLS,r,i,"co",{});}).join(''):'<div class="card" style="color:'+C.muted+';font-size:13px">No comps yet.</div>';
+  return top+body;
+}
+function attachComps(){bindEdit(comps,"co",saveComps);var a=document.getElementById("coAdd");if(a)a.onclick=function(){comps.unshift({id:uid(),city:"",addr:"",beds:"",baths:"",sqft:"",rent:"",date:new Date().toISOString().slice(0,10),source:"",notes:""});saveComps();renderApp();};var cx=document.getElementById("coCsv");if(cx)cx.onclick=function(){exportCSVrows(["City","Address","Beds","Baths","SqFt","Rent","Date","Source","Notes"],comps.map(function(r){return [r.city,r.addr,r.beds,r.baths,r.sqft,r.rent,r.date,r.source,r.notes];}),"rent-comps.csv");};}
+
+
+/* ===== i18n language toggle ===== */
+var lang=(function(){try{return store.get('rp_lang')||'en';}catch(e){return 'en';}})();
+var TR={"Monthly cash flow": "Dòng tiền hàng tháng", "Grade": "Điểm xếp hạng", "Grade breakdown": "Chi tiết điểm xếp hạng", "Return metrics": "Chỉ số lợi nhuận", "Break-even rent gauge": "Mức tiền thuê hòa vốn", "Monthly summary": "Tóm tắt hàng tháng", "Deal solver": "Công cụ giải bài toán", "Unit ": "Tiền thuê căn ", "Property": "Bất động sản", "Square feet (home)": "Diện tích nhà (sqft)", "Square feet (lot)": "Diện tích lô đất (sqft)", "Purchase & financing": "Mua & Tài chính", "Purchase price": "Giá mua", "Down payment": "Tiền trả trước", "Interest rate": "Lãi suất", "Loan term": "Thời hạn vay", "Closing costs": "Chi phí đóng giao dịch", "Rehab / repair budget": "Ngân sách sửa chữa", "Loan amount": "Số tiền vay", "Monthly P&I": "Gốc & lãi hàng tháng", "Total cash to close": "Tổng tiền mặt cần để đóng giao dịch", "Income - monthly rent by unit": "Thu nhập - tiền thuê hàng tháng theo căn", "ADU rent": "Tiền thuê ADU", "ADU build cost (capital)": "Chi phí xây ADU (vốn)", "Other income (parking, laundry)": "Thu nhập khác (đỗ xe, giặt ủi)", "Vacancy allowance": "Tỷ lệ trống", "Gross monthly rent": "Tổng tiền thuê hàng tháng", "Effective gross income / yr": "Tổng thu nhập thực tế / năm", "Occupied units": "Số căn có người thuê", "Operating expenses - annual": "Chi phí vận hành - hàng năm", "Property tax rate": "Thuế bất động sản", "Insurance": "Bảo hiểm", "HOA": "Phí HOA", "Property mgmt (0 = self-managed)": "Phí quản lý (0 = tự quản lý)", "Maintenance reserve": "Quỹ bảo trì", "Owner-paid utilities": "Tiện ích do chủ trả", "Property taxes": "Thuế bất động sản", "Total operating expenses (annual)": "Tổng chi phí vận hành (hàng năm)", "Total operating expenses (monthly)": "Tổng chi phí vận hành (hàng tháng)", "Neighborhood & scoring": "Khu vực & điểm xếp hạng", "School rating (1-10)": "Điểm trường học (1-10)", "Est. annual appreciation": "Tăng giá ước tính mỗi năm", "Analyze": "Phân tích", "Portfolio": "Danh mục", "Deal Log": "Nhật ký giao dịch", "Compare": "So sánh", "Comps": "Giá thuê", "Settings": "Cài đặt", "Investment Platform": "Nền tảng Đầu tư", "Real Estate Investment Platform": "Nền tảng Đầu tư Bất động sản", "Deal screening + portfolio tracking for SoCal rentals": "Sàng lọc giao dịch + theo dõi danh mục BĐS cho thuê Nam California", "Overview": "Tổng quan", "Edit properties": "Chỉnh sửa BĐS", "+ Portfolio": "+ Danh mục", "Rename": "Đổi tên", "Delete": "Xóa", "+ Add": "+ Thêm", "Delete property": "Xóa BĐS", "+ Add property": "+ Thêm BĐS", "Export CSV": "Xuất CSV", "Remove": "Xóa", "+ Deal": "+ Giao dịch", "Log current analyzer deal": "Ghi giao dịch đang phân tích", "+ Comp": "+ Giá thuê", "+ Tenant": "+ Người thuê", "+ Document": "+ Tài liệu", "Add a second deal to compare.": "Thêm giao dịch thứ hai để so sánh.", "Annual cash flow": "Dòng tiền hàng năm", "Portfolio equity": "Vốn sở hữu danh mục", "Total invested": "Tổng vốn đầu tư", "Blended cap": "Cap tổng hợp", "Blended CoC": "CoC tổng hợp", "Total P&I / mo": "Tổng G&L / th", "Properties": "Số BĐS", "Monthly cash flow by property": "Dòng tiền hàng tháng theo BĐS", "Revenue vs expenses (monthly)": "Doanh thu và chi phí (hàng tháng)", "Loan life & progress": "Vòng đời khoản vay & tiến độ", "Rent": "Tiền thuê", "Other op ex": "Chi phí khác", "No properties yet.": "Chưa có BĐS.", "No properties yet - add them in Edit properties.": "Chưa có BĐS - thêm ở tab Chỉnh sửa BĐS.", "Payoff": "Tất toán", "Pmts made": "Đã trả", "Left": "Còn lại", "% paid": "% đã trả", "Per-property results": "Kết quả theo BĐS", "CF/mo": "Dòng tiền/th", "PITI/mo": "PITI/th", "Equity": "Vốn SH", "Owned properties": "BĐS đang sở hữu", "Property & specs": "BĐS & thông số", "Income": "Thu nhập", "Operating expenses": "Chi phí vận hành", "Results": "Kết quả", "Name": "Tên", "Address": "Địa chỉ", "Type": "Loại", "ADU status": "Trạng thái ADU", "Beds": "Phòng ngủ", "Baths": "Phòng tắm", "Home sq ft": "DT nhà (sqft)", "Lot sq ft": "DT lô đất (sqft)", "Year built": "Năm xây", "Units": "Số căn", "Est. value": "Giá trị ước tính", "Purchased": "Ngày mua", "Down %": "Trả trước %", "Rate %": "Lãi suất %", "Term (yrs)": "Thời hạn (năm)", "Loan start": "Bắt đầu vay", "Loan balance override": "Ghi đè dư nợ", "Gross rent / mo": "Tiền thuê gộp / th", "Vacancy %": "Tỷ lệ trống %", "Property tax %": "Thuế BĐS %", "Insurance / yr": "Bảo hiểm / năm", "HOA / mo": "HOA / th", "Mgmt %": "Quản lý %", "Maintenance %": "Bảo trì %", "Utilities / mo": "Tiện ích / th", "PITI override / mo": "Ghi đè PITI / th", "Monthly PITI": "PITI hàng tháng", "NOI / yr": "NOI / năm", "Cap rate": "Tỷ suất vốn hóa","Cash flow": "Dòng tiền", "Debt safety (DSCR)": "An toàn nợ (DSCR)", "Price per sq ft (home)": "Giá mỗi sqft (nhà)", "Home sq ft vs price": "DT nhà so với giá", "Lot sq ft vs price": "DT lô so với giá",  "Cash-on-cash": "Lợi nhuận tiền mặt", "Current equity": "Vốn sở hữu hiện tại", "Loan paid off": "Khoản vay đã trả", "Tenants": "Người thuê", "Phone": "Điện thoại", "Unit": "Căn", "Lease start": "Bắt đầu thuê", "Lease end": "Kết thúc thuê", "Rent/mo": "Thuê/th", "Deposit": "Đặt cọc", "Status": "Trạng thái", "Notes": "Ghi chú", "No tenants yet.": "Chưa có người thuê.", "Documents": "Tài liệu", "Category": "Danh mục", "Title": "Tiêu đề", "Cloud URL": "Đường dẫn đám mây", "Local file": "Tệp cục bộ", "Date": "Ngày", "Open": "Mở", "No documents yet.": "Chưa có tài liệu.", "Deal log": "Nhật ký giao dịch", "Address ": "Địa chỉ ", "Ask $": "Giá chào $", "Cap%": "Cap%", "CoC%": "CoC%", "Verdict": "Kết luận", "No deals logged yet.": "Chưa ghi giao dịch nào.", "Market rent comps": "Giá thuê tham chiếu thị trường", "City/Area": "Thành phố/Khu vực", "Bd": "PN", "Ba": "PT", "SqFt": "Sqft", "Source": "Nguồn", "No comps yet.": "Chưa có dữ liệu.", "Underwriting defaults": "Giá trị mặc định", "Backup & export": "Sao lưu & xuất", "About": "Giới thiệu", "Backup all (JSON)": "Sao lưu (JSON)", "Restore (JSON)": "Khôi phục (JSON)", "Down payment %": "Trả trước %", "Interest rate %": "Lãi suất %", "Loan term (yrs)": "Thời hạn vay (năm)", "Insurance $/yr": "Bảo hiểm $/năm", "Property mgmt %": "Quản lý %", "Closing costs %": "Chi phí đóng %", "No properties in this portfolio yet.": "Danh mục này chưa có BĐS.", "Cash-on-cash return": "Lợi nhuận trên tiền mặt", "Gross rent multiplier": "Hệ số tổng tiền thuê", "Break-even occupancy": "Tỷ lệ lấp đầy hòa vốn", "Break-even occ.": "Lấp đầy hòa vốn", "Effective monthly rent (after vacancy)": "Tiền thuê thực tế hàng tháng (sau trống)", "Monthly operating expenses": "Chi phí vận hành hàng tháng", "Cash flow per unit": "Dòng tiền mỗi căn", "Cash to close": "Tiền mặt để đóng", "Max price for break-even CF": "Giá tối đa để hòa vốn dòng tiền", "Rent needed for break-even CF": "Tiền thuê cần để hòa vốn", "School quality": "Chất lượng trường học", "School rating": "Điểm trường học", "Appreciation (assumed)": "Tăng giá (giả định)", "Net monthly cash flow": "Dòng tiền ròng hàng tháng", "Exceptional": "Xuất sắc", "Strong": "Mạnh", "Solid": "Vững", "Marginal": "Cận biên", "Weak": "Yếu", "Poor": "Kém", "PASS": "BỎ QUA", "THIN": "MỎNG", "MARGINAL": "CẬN BIÊN", "STRONG": "MẠNH"};
+function _tnode(root){if(lang!=='vi'||!root)return;var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),n,arr=[];while(n=w.nextNode())arr.push(n);arr.forEach(function(t){var s=t.nodeValue;if(!s)return;var k=s.trim();if(!k)return;if(TR[k]){t.nodeValue=s.replace(k,TR[k]);return;}if(/^Compare( - \d+)?$/.test(k)){t.nodeValue=s.replace('Compare','So sánh');}});root.querySelectorAll('[placeholder]').forEach(function(e){var k=e.getAttribute('placeholder');if(TR[k])e.setAttribute('placeholder',TR[k]);});root.querySelectorAll('[title]').forEach(function(e){var k=e.getAttribute('title');if(TR[k])e.setAttribute('title',TR[k]);});}
+function applyLang(){var a=document.getElementById('app');if(a)_tnode(a);}
+function setupLangObserver(){var a=document.getElementById('app');if(!a||!window.MutationObserver)return;var busy=false;var ob=new MutationObserver(function(){if(lang!=='vi'||busy)return;busy=true;_tnode(a);busy=false;});ob.observe(a,{childList:true,subtree:true,characterData:true});}
+document.addEventListener('DOMContentLoaded',function(){
+  loadPlatform();load();renderApp();applyLang();setupLangObserver();
+  if(!_storageOk){
+    var b=document.createElement('div');
+    b.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#9A6B12;color:#fff;font-size:12px;padding:8px 16px;text-align:center;z-index:999;font-family:sans-serif;';
+    b.textContent='Storage unavailable in this browser context - deals won\'t save between sessions. Open via a URL for full functionality.';
+    document.body.appendChild(b);
+  }
+});
+</script>
+</body>
+</html>
