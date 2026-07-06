@@ -51,3 +51,16 @@ No build step, no dependencies, works offline once loaded.
 ## Disclaimer
 
 Screening aid only. Not financial, tax, or investment advice. Verify all figures independently.
+
+## Changelog
+
+### v1.1 — Jul 2026
+- New **Team** tab: A-List key contacts (realtors/wholesalers, GCs, lenders, PMs, architects) with region coverage, plus region-based **Contractors** (plumber, electrician, handyman, flooring, cabinet, roofing, windows, painter). Regions are editable (LA + OC to start).
+- New **Margin Deal Calculator** tab (Springboard to Wealth / Thach Nguyen framework, LA/OC-adjusted): color-coded strategy — Pass < 10%, Wholesale 10–15%, Fix & Flip 15–20%, Buy & Hold/BRRR 20%+; pull-from-Analyze, 70% rule max offer, log to Deal Log.
+- **Dark mode** toggle (top of the tab bar), remembered per browser.
+- Portfolio: **editable PITI** (manual override), **current equity** in Loan Life & Progress, added **rental income** and **operating expenses** columns, removed CoC column, full-word labels, and polished, centered, symmetrical tables with a paydown progress bar.
+- Numerals set in tabular-sans for clean column alignment.
+
+### v1.0 — Jul 2026
+- Initial combined platform: **Analyze** (deal underwriting + grade), **Portfolio** tracker (per-property editor, tenants, documents, charts), **Deal Log**, **Compare**, **Comps**, **Settings** (editable underwriting defaults, JSON backup/restore, CSV export).
+- Bilingual **English / Tiếng Việt** toggle. Self-contained single file, GitHub Pages ready.
