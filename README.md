@@ -54,6 +54,12 @@ Screening aid only. Not financial, tax, or investment advice. Verify all figures
 
 ## Changelog
 
+### v1.2 — Jul 2026
+- New **REPS Hours Log** tab for Real Estate Professional Status tracking: color-coded live counter toward 750 hours **per tax year**, category breakdown, Excel/Google-Sheets **CSV export**, and a per-row **stopwatch** (press Time on an entry to clock it live).
+- Entries capture Date, Category (Rental Operations, Acquisition, Leasing & Tenant Placement, Development, Construction), Activity notes, **Property** tag, and Hours:Minutes. Add/remove custom property names right on the tab.
+- **Analyze grade** now uses banded scoring scales for Cash flow and Debt Safety (DSCR).
+- REPS data included in JSON backup.
+
 ### v1.1 — Jul 2026
 - New **Team** tab: A-List key contacts (realtors/wholesalers, GCs, lenders, PMs, architects) with region coverage, plus region-based **Contractors** (plumber, electrician, handyman, flooring, cabinet, roofing, windows, painter). Regions are editable (LA + OC to start).
 - New **Margin Deal Calculator** tab (Springboard to Wealth / Thach Nguyen framework, LA/OC-adjusted): color-coded strategy — Pass < 10%, Wholesale 10–15%, Fix & Flip 15–20%, Buy & Hold/BRRR 20%+; pull-from-Analyze, 70% rule max offer, log to Deal Log.
