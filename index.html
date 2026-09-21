@@ -48,11 +48,104 @@
   }
   input[type=number]{-moz-appearance:textfield;}
   input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+/* ===== v1.4 FX theme (Fintech Dark) ===== */
+  @keyframes fxIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes fxGlow{0%,100%{box-shadow:0 0 0 1px rgba(52,245,181,.18),0 10px 40px rgba(34,211,165,.10)}50%{box-shadow:0 0 0 1px rgba(52,245,181,.30),0 10px 50px rgba(34,211,165,.20)}}
+  @keyframes fxDraw{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
+  .fx-enter .card,.fx-enter .fx-hero{animation:fxIn .45s cubic-bezier(.2,.7,.2,1) both}
+  .fx-enter .col>*:nth-child(2),.fx-enter .results>*:nth-child(2){animation-delay:.06s}
+  .fx-enter .col>*:nth-child(3),.fx-enter .results>*:nth-child(3){animation-delay:.12s}
+  .fx-enter .col>*:nth-child(n+4),.fx-enter .results>*:nth-child(n+4){animation-delay:.18s}
+  .card,.tab,.chip{transition:transform .18s ease,box-shadow .2s ease,border-color .2s ease,background .2s ease}
+  .tab{display:inline-flex;align-items:center;gap:7px}
+  .tab .fx-ic{width:15px;height:15px;flex:none;opacity:.85}
+  .tab{padding:7px 12px}
+  #darkBtn{font-size:0;gap:0;padding:7px 9px}#darkBtn .fx-ic{width:16px;height:16px}
+  @media(max-width:600px){.tab{padding:9px 12px}}
+  .tab:hover,.chip:hover{transform:translateY(-1px)}
+  .fx-logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#22d3a5,#3b82f6);display:grid;place-items:center;box-shadow:0 0 22px rgba(34,211,165,.35);flex:none}
+  .fx-hero{position:relative;overflow:hidden;border-radius:18px;padding:20px 20px 18px;color:#E6EDF6;
+    background:radial-gradient(420px 220px at 100% 0%,rgba(59,130,246,.22),transparent 60%),radial-gradient(360px 200px at 0% 100%,rgba(34,211,165,.16),transparent 60%),linear-gradient(160deg,#101b2e,#0a111e);
+    border:1px solid rgba(255,255,255,.10);animation:fxGlow 5s ease-in-out infinite}
+  .fx-gauge .arc{animation:fxDraw 1s cubic-bezier(.2,.7,.2,1) both}
+  .fx-big{font-size:38px;font-weight:800;letter-spacing:-.02em;line-height:1.05}
+  html.fx-dark body{background:radial-gradient(1200px 640px at 85% -8%,#18365a 0%,rgba(10,15,26,0) 60%),radial-gradient(900px 500px at -10% 30%,rgba(34,211,165,.07),rgba(10,15,26,0) 60%),#0A0F1A !important;background-attachment:fixed !important}
+  html.fx-dark .card{background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.02)),rgba(17,26,42,.55);border-color:rgba(255,255,255,.09);border-radius:18px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  html.fx-dark .card:hover{border-color:rgba(52,245,181,.22)}
+  html.fx-dark .tab,html.fx-dark .chip{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10);color:#9FB2C8}
+  html.fx-dark .tab:hover,html.fx-dark .chip:hover{border-color:rgba(52,245,181,.35);color:#E6EDF6}
+  html.fx-dark .tab.active,html.fx-dark .chip.active{background:linear-gradient(135deg,#22d3a5,#3b82f6);color:#04121d;border-color:transparent;box-shadow:0 6px 22px rgba(34,211,165,.28)}
+  html.fx-dark .in,html.fx-dark select{background:rgba(8,14,26,.7) !important;border-color:rgba(255,255,255,.10) !important;color:#E6EDF6 !important}
+  html.fx-dark .in:focus{border-color:#34F5B5 !important;box-shadow:0 0 0 3px rgba(52,245,181,.15)}
+  html.fx-dark h1{background:linear-gradient(90deg,#fff,#b9d3ef);-webkit-background-clip:text;background-clip:text;color:transparent}
+  html.fx-dark .fx-pos{color:#34F5B5;text-shadow:0 0 26px rgba(52,245,181,.45)}
+  html.fx-dark .fx-neg{color:#FF6B81;text-shadow:0 0 26px rgba(255,107,129,.40)}
+  html.fx-dark table tr:hover td{background:rgba(52,245,181,.04)}
+  html:not(.fx-dark) .fx-pos{color:#5FC98C}html:not(.fx-dark) .fx-neg{color:#F08A7E}
+  html.fx-dark #mgtP{background:rgba(255,107,129,.10)!important;color:#FF6B81!important}
+  html.fx-dark #mgtW{background:rgba(251,191,36,.10)!important;color:#FBBF24!important}
+  html.fx-dark #mgtF{background:rgba(96,165,250,.12)!important;color:#7CB8FF!important}
+  html.fx-dark #mgtB{background:rgba(52,245,181,.10)!important;color:#34F5B5!important}
+  #mgPct{text-shadow:0 0 28px currentColor}
+  /* v1.4 comparison + end game */
+  .cmp-board{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .cmp-card{padding:16px}
+  .cmp-top{border-color:rgba(251,191,36,.45)!important;box-shadow:0 0 0 1px rgba(251,191,36,.25),0 12px 36px rgba(251,191,36,.10)!important}
+  .cmp-rank{display:inline-grid;place-items:center;min-width:30px;height:24px;padding:0 7px;border-radius:999px;font-weight:800;font-size:12px;border:1px solid}
+  .cmp-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;font-size:13px}
+  .cmp-bar-lab{width:210px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cmp-tbl{min-width:0}
+  .cmp-tbl th{padding:12px 14px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line);vertical-align:bottom}
+  .cmp-tbl td{padding:10px 14px;font-size:13px;border-top:1px solid var(--line)}
+  .cmp-sticky{position:sticky;left:0;z-index:1;background:var(--panel);color:var(--muted);text-align:left;white-space:nowrap}
+  .cmp-best{background:var(--goSoft)}
+  .eg-hero{display:flex;gap:28px;align-items:center;padding:24px 26px;flex-wrap:wrap}
+  .eg-ring{flex:none;margin:0 auto}
+  .eg-stats{flex:1;min-width:260px}
+  .eg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+  .eg-kpis>div{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px}
+  .eg-k{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#7F95AD;margin-bottom:3px}
+  .eg-stack{display:flex;height:14px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;gap:2px}
+  .eg-stack>div{height:100%;transition:width .6s ease}
+  .eg-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;align-items:start}
+  .eg-wide{grid-column:1/-1}
+  .eg-prop{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:13.5px}
+  .eg-prop.off{opacity:.45}
+  .eg-inc{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line)}
+  .eg-dot{width:10px;height:10px;border-radius:3px;flex:none}
+  @media(max-width:860px){.eg-grid{grid-template-columns:1fr}.eg-kpis{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){
+    .tabrow{flex-wrap:nowrap!important;overflow-x:auto;padding-bottom:6px;margin-left:-10px;margin-right:-10px;padding-left:10px;padding-right:10px;scrollbar-width:none}
+    .tabrow::-webkit-scrollbar{display:none}
+    .tabrow .tab{flex:none;white-space:nowrap}
+    .fx-right{align-items:flex-start!important;width:100%}
+    .cmp-bar-lab{width:100px}
+    .eg-hero{padding:18px}
+  }
+  /* v1.4 team priority */
+  .tm-row{display:flex;gap:12px;align-items:stretch;padding:10px 0;border-top:1px solid var(--line);transition:background .15s,opacity .15s}
+  .tm-row-first{background:linear-gradient(90deg,rgba(251,191,36,.07),transparent 60%)}
+  .tm-rail{flex:none;width:62px;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:2px}
+  .tm-handle{cursor:grab;color:var(--faint);font-size:14px;letter-spacing:-2px;line-height:1;padding:2px 6px;border-radius:6px;user-select:none}
+  .tm-handle:hover{color:var(--ink);background:rgba(128,128,128,.12)}
+  .tm-rank{width:28px;height:28px;border-radius:999px;display:grid;place-items:center;font-weight:800;font-size:13px;border:1px solid var(--line);color:var(--muted)}
+  .tm-first{background:#FBBF24;border-color:#FBBF24;color:#0A0F1A;box-shadow:0 0 14px rgba(251,191,36,.45)}
+  .tm-lab{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);text-align:center;line-height:1.2}
+  .tm-row-first .tm-lab{color:#E0A800}
+  html.fx-dark .tm-row-first .tm-lab{color:#FBBF24}
+  .tm-arrows{display:flex;gap:3px;margin-top:2px}
+  .tm-mv{padding:2px 6px!important;font-size:9px!important;line-height:1.3}
+  .tm-mv[disabled]{opacity:.3;cursor:default;transform:none!important}
+  .tm-dragging{opacity:.4}
+  .tm-over{background:rgba(52,245,181,.08);box-shadow:inset 0 2px 0 #34F5B5}
+  @media(max-width:600px){.tm-rail{width:50px}.tm-handle{display:none}.tm-mv{padding:5px 8px!important;font-size:11px!important}.tm-arrows{flex-direction:column}}
+  @media (prefers-reduced-motion:reduce){.fx-enter .card,.fx-enter .fx-hero,.fx-hero,.fx-gauge .arc{animation:none}}
 </style>
+<meta name="theme-color" content="#0A0F1A" />
 </head>
 <body>
 <div class="wrap" id="app"></div>
-<div style="max-width:1100px;margin:26px auto 0;padding:14px 16px 4px;border-top:1px solid var(--line);text-align:center;font-family:var(--sans);font-size:11.5px;color:var(--faint);line-height:1.6">Real Estate Investment Platform &middot; <b style="color:var(--muted);font-weight:600">v1.2</b> &middot; updated Jul 2026 &middot; screening aid only, not financial advice</div>
+<div style="max-width:1100px;margin:26px auto 0;padding:14px 16px 4px;border-top:1px solid var(--line);text-align:center;font-family:var(--sans);font-size:11.5px;color:var(--faint);line-height:1.6">Real Estate Investment Platform &middot; <b style="color:var(--muted);font-weight:600">v1.4</b> &middot; updated Sep 2026 &middot; screening aid only, not financial advice</div>
 <script>
 var _memStore={};
 var store={
@@ -220,34 +313,39 @@ function recompute(){
 function renderApp(){
   var app=document.getElementById("app");
   var m=compute(deal);
-  var head='<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">'+
+  var head='<div class="fx-head" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">'+
     '<div><div class="seg" style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:16px;background:'+m.gm.color+';display:inline-block;border-radius:2px"></span>Investment Platform</div>'+
     '<h1>Real Estate Investment Platform</h1><p style="margin:3px 0 0;font-size:13px;color:'+C.muted+'">Deal screening + portfolio tracking for SoCal rentals</p></div>';
+  head+='<div class="fx-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">'+
+    '<div style="display:flex;gap:6px;align-items:center">'+
+    '<button class="tab'+(view==="settings"?" active":"")+'" id="tabS">Settings</button>'+'<button class="tab" id="langBtn" title="Language">'+(lang==="vi"?"EN":"Tiếng Việt")+'</button>'+'<button class="tab" id="darkBtn" title="Dark mode">'+(THEME_DARK?"Light":"Dark")+'</button></div>';
   if(view==="analyze"){
-    head+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+    head+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">'+
       '<select id="dealSelect" style="font-size:13px;padding:8px 10px;border-radius:7px;border:1px solid '+C.line+';background:'+C.panel+';color:'+C.ink+';max-width:200px">'+
       deals.map(function(x){return '<option value="'+x.id+'"'+(x.id===currentId?' selected':'')+'>'+esc(x.name)+'</option>';}).join('')+'</select>'+
       '<button class="chip" id="btnNew">+ New</button>'+
       '<button class="chip" id="btnDel"'+(deals.length<=1?' style="opacity:.4"':'')+'>Delete</button>'+'<button class="chip" id="btnPrint">Print</button><button class="chip" id="btnMobile">Mobile view</button></div>';
   }
-  head+='</div>';
-  head+='<div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center">'+
+  head+='</div></div>';
+  head+='<div class="tabrow" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center">'+
     '<button class="tab'+(view==="analyze"?" active":"")+'" id="tabA">Analyze</button>'+
+    '<button class="tab'+(view==="compare"?" active":"")+'" id="tabC">Deal Comparison Analysis</button>'+
+    '<button class="tab'+(view==="comps"?" active":"")+'" id="tabM">Market Rent Comps</button>'+
+    '<button class="tab'+(view==="margin"?" active":"")+'" id="tabG">Margin</button>'+
+    '<button class="tab'+(view==="reps"?" active":"")+'" id="tabR">REPS Log</button>'+
+    '<button class="tab'+(view==="team"?" active":"")+'" id="tabT">Team</button>'+
     '<button class="tab'+(view==="portfolio"?" active":"")+'" id="tabP">Portfolio</button>'+
-    '<button class="tab'+(view==="deallog"?" active":"")+'" id="tabL">Deal Log</button>'+
-    '<button class="tab'+(view==="compare"?" active":"")+'" id="tabC">Compare'+(deals.length>1?" - "+deals.length:"")+'</button>'+
-    '<button class="tab'+(view==="comps"?" active":"")+'" id="tabM">Comps</button>'+'<button class="tab'+(view==="team"?" active":"")+'" id="tabT">Team</button>'+'<button class="tab'+(view==="margin"?" active":"")+'" id="tabG">Margin</button>'+'<button class="tab'+(view==="reps"?" active":"")+'" id="tabR">REPS</button>'+
-    '<span style="flex:1"></span>'+
-    '<button class="tab'+(view==="settings"?" active":"")+'" id="tabS">Settings</button>'+'<button class="tab" id="langBtn" style="margin-left:6px" title="Language">'+(lang==="vi"?"EN":"Tiếng Việt")+'</button>'+'<button class="tab" id="darkBtn" style="margin-left:4px" title="Dark mode">'+(THEME_DARK?"Light":"Dark")+'</button></div>';
+    '<button class="tab'+(view==="endgame"?" active":"")+'" id="tabE">Freedom</button></div>';
 
   if(view==="portfolio"){app.innerHTML=head+portfolioHTML();attachCommon();attachPortfolio();return;}
-  if(view==="deallog"){app.innerHTML=head+dealLogHTML();attachCommon();attachDealLog();return;}
   if(view==="comps"){app.innerHTML=head+compsHTML();attachCommon();attachComps();return;}
   if(view==="settings"){app.innerHTML=head+settingsHTML();attachCommon();attachSettings();return;}
   if(view==="team"){app.innerHTML=head+teamHTML();attachCommon();attachTeam();return;}
   if(view==="margin"){app.innerHTML=head+marginHTML();attachCommon();attachMargin();return;}
   if(view==="reps"){app.innerHTML=head+repsHTML();attachCommon();attachReps();return;}
   if(view==="compare"){app.innerHTML=head+compareHTML();attachCommon();attachCompare();return;}
+  if(view==="endgame"){app.innerHTML=head+endGameHTML();attachCommon();attachEndGame();return;}
+  if(view==="deallog"){view="analyze";}
 
   var units="";for(var i=0;i<deal.unitCount;i++)units+=unitRow(i);
   var left='<div class="col">'+
@@ -328,6 +426,7 @@ function attachCommon(){
   var tteam=document.getElementById("tabT");if(tteam)tteam.onclick=function(){view="team";renderApp();};
   var tmg=document.getElementById("tabG");if(tmg)tmg.onclick=function(){view="margin";renderApp();};
   var trps=document.getElementById("tabR");if(trps)trps.onclick=function(){view="reps";renderApp();};
+  var teg=document.getElementById("tabE");if(teg)teg.onclick=function(){view="endgame";renderApp();};
   var lb=document.getElementById("langBtn");if(lb)lb.onclick=function(){lang=(lang==="vi")?"en":"vi";try{store.set("rp_lang",lang);}catch(e){}renderApp();applyLang();};
   var db=document.getElementById("darkBtn");if(db)db.onclick=toggleTheme;
 }
@@ -804,7 +903,7 @@ function attachComps(){bindEdit(comps,"co",saveComps);var a=document.getElementB
 
 /* ===== i18n language toggle ===== */
 var lang=(function(){try{return store.get('rp_lang')||'en';}catch(e){return 'en';}})();
-var TR={"Monthly cash flow": "Dòng tiền hàng tháng", "Grade": "Điểm xếp hạng", "Grade breakdown": "Chi tiết điểm xếp hạng", "Return metrics": "Chỉ số lợi nhuận", "Break-even rent gauge": "Mức tiền thuê hòa vốn", "Monthly summary": "Tóm tắt hàng tháng", "Deal solver": "Công cụ giải bài toán", "Unit ": "Tiền thuê căn ", "Property": "Bất động sản", "Square feet (home)": "Diện tích nhà (sqft)", "Square feet (lot)": "Diện tích lô đất (sqft)", "Purchase & financing": "Mua & Tài chính", "Purchase price": "Giá mua", "Down payment": "Tiền trả trước", "Interest rate": "Lãi suất", "Loan term": "Thời hạn vay", "Closing costs": "Chi phí đóng giao dịch", "Rehab / repair budget": "Ngân sách sửa chữa", "Loan amount": "Số tiền vay", "Monthly P&I": "Gốc & lãi hàng tháng", "Total cash to close": "Tổng tiền mặt cần để đóng giao dịch", "Income - monthly rent by unit": "Thu nhập - tiền thuê hàng tháng theo căn", "ADU rent": "Tiền thuê ADU", "ADU build cost (capital)": "Chi phí xây ADU (vốn)", "Other income (parking, laundry)": "Thu nhập khác (đỗ xe, giặt ủi)", "Vacancy allowance": "Tỷ lệ trống", "Gross monthly rent": "Tổng tiền thuê hàng tháng", "Effective gross income / yr": "Tổng thu nhập thực tế / năm", "Occupied units": "Số căn có người thuê", "Operating expenses - annual": "Chi phí vận hành - hàng năm", "Property tax rate": "Thuế bất động sản", "Insurance": "Bảo hiểm", "HOA": "Phí HOA", "Property mgmt (0 = self-managed)": "Phí quản lý (0 = tự quản lý)", "Maintenance reserve": "Quỹ bảo trì", "Owner-paid utilities": "Tiện ích do chủ trả", "Property taxes": "Thuế bất động sản", "Total operating expenses (annual)": "Tổng chi phí vận hành (hàng năm)", "Total operating expenses (monthly)": "Tổng chi phí vận hành (hàng tháng)", "Neighborhood & scoring": "Khu vực & điểm xếp hạng", "School rating (1-10)": "Điểm trường học (1-10)", "Est. annual appreciation": "Tăng giá ước tính mỗi năm", "Analyze": "Phân tích", "Portfolio": "Danh mục", "Deal Log": "Nhật ký giao dịch", "Compare": "So sánh", "Comps": "Giá thuê", "Settings": "Cài đặt", "Investment Platform": "Nền tảng Đầu tư", "Real Estate Investment Platform": "Nền tảng Đầu tư Bất động sản", "Deal screening + portfolio tracking for SoCal rentals": "Sàng lọc giao dịch + theo dõi danh mục BĐS cho thuê Nam California", "Overview": "Tổng quan", "Edit properties": "Chỉnh sửa BĐS", "+ Portfolio": "+ Danh mục", "Rename": "Đổi tên", "Delete": "Xóa", "+ Add": "+ Thêm", "Delete property": "Xóa BĐS", "+ Add property": "+ Thêm BĐS", "Export CSV": "Xuất CSV", "Remove": "Xóa", "+ Deal": "+ Giao dịch", "Log current analyzer deal": "Ghi giao dịch đang phân tích", "+ Comp": "+ Giá thuê", "+ Tenant": "+ Người thuê", "+ Document": "+ Tài liệu", "Add a second deal to compare.": "Thêm giao dịch thứ hai để so sánh.", "Annual cash flow": "Dòng tiền hàng năm", "Portfolio equity": "Vốn sở hữu danh mục", "Total invested": "Tổng vốn đầu tư", "Blended cap": "Cap tổng hợp", "Blended CoC": "CoC tổng hợp", "Total P&I / mo": "Tổng G&L / th", "Properties": "Số BĐS", "Monthly cash flow by property": "Dòng tiền hàng tháng theo BĐS", "Revenue vs expenses (monthly)": "Doanh thu và chi phí (hàng tháng)", "Loan life & progress": "Vòng đời khoản vay & tiến độ", "Rent": "Tiền thuê", "Other op ex": "Chi phí khác", "No properties yet.": "Chưa có BĐS.", "No properties yet - add them in Edit properties.": "Chưa có BĐS - thêm ở tab Chỉnh sửa BĐS.", "Payoff": "Tất toán", "Pmts made": "Đã trả", "Left": "Còn lại", "% paid": "% đã trả", "Per-property results": "Kết quả theo BĐS", "CF/mo": "Dòng tiền/th", "PITI/mo": "PITI/th", "Equity": "Vốn SH", "Owned properties": "BĐS đang sở hữu", "Property & specs": "BĐS & thông số", "Income": "Thu nhập", "Operating expenses": "Chi phí vận hành", "Results": "Kết quả", "Name": "Tên", "Address": "Địa chỉ", "Type": "Loại", "ADU status": "Trạng thái ADU", "Beds": "Phòng ngủ", "Baths": "Phòng tắm", "Home sq ft": "DT nhà (sqft)", "Lot sq ft": "DT lô đất (sqft)", "Year built": "Năm xây", "Units": "Số căn", "Est. value": "Giá trị ước tính", "Purchased": "Ngày mua", "Down %": "Trả trước %", "Rate %": "Lãi suất %", "Term (yrs)": "Thời hạn (năm)", "Loan start": "Bắt đầu vay", "Loan balance override": "Ghi đè dư nợ", "Gross rent / mo": "Tiền thuê gộp / th", "Vacancy %": "Tỷ lệ trống %", "Property tax %": "Thuế BĐS %", "Insurance / yr": "Bảo hiểm / năm", "HOA / mo": "HOA / th", "Mgmt %": "Quản lý %", "Maintenance %": "Bảo trì %", "Utilities / mo": "Tiện ích / th", "PITI override / mo": "Ghi đè PITI / th", "Monthly PITI": "PITI hàng tháng", "NOI / yr": "NOI / năm", "Cap rate": "Tỷ suất vốn hóa","Cash flow": "Dòng tiền", "Debt safety (DSCR)": "An toàn nợ (DSCR)", "Price per sq ft (home)": "Giá mỗi sqft (nhà)", "Home sq ft vs price": "DT nhà so với giá", "Lot sq ft vs price": "DT lô so với giá", "Cap rate": "Tỷ suất vốn hóa", "Print": "In", "Mobile view": "Xem di động", "PITI (monthly)": "PITI (hàng tháng)", "Operating expenses (monthly)": "Chi phí vận hành (hàng tháng)", "Mortgage (P&I) / mo": "Vay gốc&lãi / th", "Property tax / mo": "Thuế BĐS / th", "Insurance / mo": "Bảo hiểm / th", "Management % of rent": "Quản lý % tiền thuê", "Management flat fee / mo": "Phí quản lý cố định / th", "Utilities (owner-paid)": "Tiện ích (chủ trả)", "+ Add utility": "+ Thêm tiện ích", "+ Property": "+ BĐS", "Added properties:": "BĐS đã thêm:", "REPS": "REPS", "REPS Hours Log": "Nhật ký giờ REPS", "REPS hours": "Giờ REPS", "Tax year": "Năm thuế", "Hours by category": "Giờ theo hạng mục", "Activity": "Hoạt động", "Time": "Thời gian", "Portfolio-wide": "Toàn danh mục", "+ Add entry": "+ Thêm mục", "Start stopwatch": "Bắt đầu bấm giờ", "Stop stopwatch": "Dừng bấm giờ", "Rental Operations": "Vận hành cho thuê", "Acquisition": "Thu mua", "Leasing & Tenant Placement": "Cho thuê & Tìm khách", "Development": "Phát triển", "Construction": "Xây dựng", "Rental income / mo": "Thu nhập thuê / th", "Operating expenses / mo": "Chi phí vận hành / th", "Dark": "Tối", "Light": "Sáng", "Blended cap rate": "Cap tổng hợp", "Blended cash-on-cash": "CoC tổng hợp", "Total monthly P&I": "Tổng G&L hàng tháng", "Cash flow / mo": "Dòng tiền / th", "PITI / mo": "PITI / th", "Payoff date": "Ngày tất toán", "Payments made": "Kỳ đã trả", "Payments left": "Kỳ còn lại", "% paid off": "% đã trả", "Home square feet": "Diện tích nhà (sqft)", "Lot square feet": "Diện tích lô (sqft)", "Estimated market value": "Giá trị thị trường ước tính", "Purchase date": "Ngày mua", "Down payment %": "Trả trước %", "Interest rate %": "Lãi suất %", "Loan term (years)": "Thời hạn vay (năm)", "Loan start date": "Ngày bắt đầu vay", "Current loan balance (override)": "Dư nợ hiện tại (nhập tay)", "Gross rent / month": "Tiền thuê gộp / th", "Insurance / year": "Bảo hiểm / năm", "HOA / month": "HOA / th", "Management %": "Quản lý %", "Utilities / month": "Tiện ích / th", "Monthly PITI (editable)": "PITI hàng tháng (nhập tay)", "Margin": "Biên LN", "Margin Deal Calculator": "Máy tính biên giao dịch", "Deal inputs": "Số liệu giao dịch", "After-repair value (ARV)": "Giá trị sau sửa (ARV)", "Rehab / repairs": "Sửa chữa", "Holding costs": "Chi phí nắm giữ", "Selling costs": "Chi phí bán", "Wholesale fee (optional)": "Phí bán sỉ (tùy chọn)", "Deal margin": "Biên lợi nhuận", "All-in cost": "Tổng chi phí", "Projected profit": "Lợi nhuận dự kiến", "Max offer (70% rule)": "Giá tối đa (quy tắc 70%)", "Est. wholesale fee": "Phí bán sỉ ước tính", "Pull from current deal": "Lấy từ giao dịch hiện tại", "Log to Deal Log": "Ghi vào Nhật ký", "Wholesale": "Bán sỉ", "Fix & Flip": "Sửa & bán", "Buy & Hold / BRRR": "Mua & giữ / BRRR", "Pass": "Bỏ qua", "WHOLESALE": "BÁN SỈ", "FIX & FLIP": "SỬA & BÁN", "BUY & HOLD / BRRR": "MUA & GIỮ / BRRR", "PASS — TOO THIN": "BỎ QUA — LỢI NHUẬN MỎNG", "Team": "Đội ngũ", "A-List Team": "Đội ngũ A-List", "Contractors": "Nhà thầu", "A-List team — all regions": "Đội ngũ A-List — mọi khu vực", "Contractors — by region": "Nhà thầu — theo khu vực", "Region coverage": "Khu vực phụ trách", "All regions": "Tất cả khu vực", "Profession": "Nghề", "Trade": "Nghề", "+ Region": "+ Khu vực", "Delete region": "Xóa khu vực", "+ Add": "+ Thêm", "None yet.": "Chưa có.", "No contacts yet.": "Chưa có liên hệ.", "Realtors & Wholesalers": "Môi giới & Bán sỉ", "General Contractors": "Nhà thầu chính", "Lender Team": "Nhóm cho vay", "Property Managers": "Quản lý BĐS", "Architects": "Kiến trúc sư", "Other": "Khác", "Realtor / Wholesaler": "Môi giới / Bán sỉ", "General Contractor": "Nhà thầu chính", "Lender": "Cho vay", "Property Manager": "Quản lý BĐS", "Architect": "Kiến trúc sư", "Plumber": "Thợ ống nước", "Electrician": "Thợ điện", "Handyman": "Thợ sửa chữa", "Flooring": "Sàn", "Cabinet": "Tủ bếp", "Roofing": "Mái", "Windows": "Cửa sổ", "Painter": "Thợ sơn", "Landscaper": "Thợ cảnh quan",  "Cash-on-cash": "Lợi nhuận tiền mặt", "Current equity": "Vốn sở hữu hiện tại", "Loan paid off": "Khoản vay đã trả", "Tenants": "Người thuê", "Phone": "Điện thoại", "Unit": "Căn", "Lease start": "Bắt đầu thuê", "Lease end": "Kết thúc thuê", "Rent/mo": "Thuê/th", "Deposit": "Đặt cọc", "Status": "Trạng thái", "Notes": "Ghi chú", "No tenants yet.": "Chưa có người thuê.", "Documents": "Tài liệu", "Category": "Danh mục", "Title": "Tiêu đề", "Cloud URL": "Đường dẫn đám mây", "Local file": "Tệp cục bộ", "Date": "Ngày", "Open": "Mở", "No documents yet.": "Chưa có tài liệu.", "Deal log": "Nhật ký giao dịch", "Address ": "Địa chỉ ", "Ask $": "Giá chào $", "Cap%": "Cap%", "CoC%": "CoC%", "Verdict": "Kết luận", "No deals logged yet.": "Chưa ghi giao dịch nào.", "Market rent comps": "Giá thuê tham chiếu thị trường", "City/Area": "Thành phố/Khu vực", "Bd": "PN", "Ba": "PT", "SqFt": "Sqft", "Source": "Nguồn", "No comps yet.": "Chưa có dữ liệu.", "Underwriting defaults": "Giá trị mặc định", "Backup & export": "Sao lưu & xuất", "About": "Giới thiệu", "Backup all (JSON)": "Sao lưu (JSON)", "Restore (JSON)": "Khôi phục (JSON)", "Down payment %": "Trả trước %", "Interest rate %": "Lãi suất %", "Loan term (yrs)": "Thời hạn vay (năm)", "Insurance $/yr": "Bảo hiểm $/năm", "Property mgmt %": "Quản lý %", "Closing costs %": "Chi phí đóng %", "No properties in this portfolio yet.": "Danh mục này chưa có BĐS.", "Cash-on-cash return": "Lợi nhuận trên tiền mặt", "Gross rent multiplier": "Hệ số tổng tiền thuê", "Break-even occupancy": "Tỷ lệ lấp đầy hòa vốn", "Break-even occ.": "Lấp đầy hòa vốn", "Effective monthly rent (after vacancy)": "Tiền thuê thực tế hàng tháng (sau trống)", "Monthly operating expenses": "Chi phí vận hành hàng tháng", "Cash flow per unit": "Dòng tiền mỗi căn", "Cash to close": "Tiền mặt để đóng", "Max price for break-even CF": "Giá tối đa để hòa vốn dòng tiền", "Rent needed for break-even CF": "Tiền thuê cần để hòa vốn", "School quality": "Chất lượng trường học", "School rating": "Điểm trường học", "Appreciation (assumed)": "Tăng giá (giả định)", "Net monthly cash flow": "Dòng tiền ròng hàng tháng", "Exceptional": "Xuất sắc", "Strong": "Mạnh", "Solid": "Vững", "Marginal": "Cận biên", "Weak": "Yếu", "Poor": "Kém", "PASS": "BỎ QUA", "THIN": "MỎNG", "MARGINAL": "CẬN BIÊN", "STRONG": "MẠNH"};
+var TR={"Monthly cash flow": "Dòng tiền hàng tháng", "Grade": "Điểm xếp hạng", "Grade breakdown": "Chi tiết điểm xếp hạng", "Return metrics": "Chỉ số lợi nhuận", "Break-even rent gauge": "Mức tiền thuê hòa vốn", "Monthly summary": "Tóm tắt hàng tháng", "Deal solver": "Công cụ giải bài toán", "Unit ": "Tiền thuê căn ", "Property": "Bất động sản", "Square feet (home)": "Diện tích nhà (sqft)", "Square feet (lot)": "Diện tích lô đất (sqft)", "Purchase & financing": "Mua & Tài chính", "Purchase price": "Giá mua", "Down payment": "Tiền trả trước", "Interest rate": "Lãi suất", "Loan term": "Thời hạn vay", "Closing costs": "Chi phí đóng giao dịch", "Rehab / repair budget": "Ngân sách sửa chữa", "Loan amount": "Số tiền vay", "Monthly P&I": "Gốc & lãi hàng tháng", "Total cash to close": "Tổng tiền mặt cần để đóng giao dịch", "Income - monthly rent by unit": "Thu nhập - tiền thuê hàng tháng theo căn", "ADU rent": "Tiền thuê ADU", "ADU build cost (capital)": "Chi phí xây ADU (vốn)", "Other income (parking, laundry)": "Thu nhập khác (đỗ xe, giặt ủi)", "Vacancy allowance": "Tỷ lệ trống", "Gross monthly rent": "Tổng tiền thuê hàng tháng", "Effective gross income / yr": "Tổng thu nhập thực tế / năm", "Occupied units": "Số căn có người thuê", "Operating expenses - annual": "Chi phí vận hành - hàng năm", "Property tax rate": "Thuế bất động sản", "Insurance": "Bảo hiểm", "HOA": "Phí HOA", "Property mgmt (0 = self-managed)": "Phí quản lý (0 = tự quản lý)", "Maintenance reserve": "Quỹ bảo trì", "Owner-paid utilities": "Tiện ích do chủ trả", "Property taxes": "Thuế bất động sản", "Total operating expenses (annual)": "Tổng chi phí vận hành (hàng năm)", "Total operating expenses (monthly)": "Tổng chi phí vận hành (hàng tháng)", "Neighborhood & scoring": "Khu vực & điểm xếp hạng", "School rating (1-10)": "Điểm trường học (1-10)", "Est. annual appreciation": "Tăng giá ước tính mỗi năm", "Analyze": "Phân tích", "Portfolio": "Danh mục", "Deal Log": "Nhật ký giao dịch", "Compare": "So sánh", "Comps": "Giá thuê", "Settings": "Cài đặt", "Investment Platform": "Nền tảng Đầu tư", "Real Estate Investment Platform": "Nền tảng Đầu tư Bất động sản", "Deal screening + portfolio tracking for SoCal rentals": "Sàng lọc giao dịch + theo dõi danh mục BĐS cho thuê Nam California", "Overview": "Tổng quan", "Edit properties": "Chỉnh sửa BĐS", "+ Portfolio": "+ Danh mục", "Rename": "Đổi tên", "Delete": "Xóa", "+ Add": "+ Thêm", "Delete property": "Xóa BĐS", "+ Add property": "+ Thêm BĐS", "Export CSV": "Xuất CSV", "Remove": "Xóa", "+ Deal": "+ Giao dịch", "Log current analyzer deal": "Ghi giao dịch đang phân tích", "+ Comp": "+ Giá thuê", "+ Tenant": "+ Người thuê", "+ Document": "+ Tài liệu", "Add a second deal to compare.": "Thêm giao dịch thứ hai để so sánh.", "Annual cash flow": "Dòng tiền hàng năm", "Portfolio equity": "Vốn sở hữu danh mục", "Total invested": "Tổng vốn đầu tư", "Blended cap": "Cap tổng hợp", "Blended CoC": "CoC tổng hợp", "Total P&I / mo": "Tổng G&L / th", "Properties": "Số BĐS", "Monthly cash flow by property": "Dòng tiền hàng tháng theo BĐS", "Revenue vs expenses (monthly)": "Doanh thu và chi phí (hàng tháng)", "Loan life & progress": "Vòng đời khoản vay & tiến độ", "Rent": "Tiền thuê", "Other op ex": "Chi phí khác", "No properties yet.": "Chưa có BĐS.", "No properties yet - add them in Edit properties.": "Chưa có BĐS - thêm ở tab Chỉnh sửa BĐS.", "Payoff": "Tất toán", "Pmts made": "Đã trả", "Left": "Còn lại", "% paid": "% đã trả", "Per-property results": "Kết quả theo BĐS", "CF/mo": "Dòng tiền/th", "PITI/mo": "PITI/th", "Equity": "Vốn SH", "Owned properties": "BĐS đang sở hữu", "Property & specs": "BĐS & thông số", "Income": "Thu nhập", "Operating expenses": "Chi phí vận hành", "Results": "Kết quả", "Name": "Tên", "Address": "Địa chỉ", "Type": "Loại", "ADU status": "Trạng thái ADU", "Beds": "Phòng ngủ", "Baths": "Phòng tắm", "Home sq ft": "DT nhà (sqft)", "Lot sq ft": "DT lô đất (sqft)", "Year built": "Năm xây", "Units": "Số căn", "Est. value": "Giá trị ước tính", "Purchased": "Ngày mua", "Down %": "Trả trước %", "Rate %": "Lãi suất %", "Term (yrs)": "Thời hạn (năm)", "Loan start": "Bắt đầu vay", "Loan balance override": "Ghi đè dư nợ", "Gross rent / mo": "Tiền thuê gộp / th", "Vacancy %": "Tỷ lệ trống %", "Property tax %": "Thuế BĐS %", "Insurance / yr": "Bảo hiểm / năm", "HOA / mo": "HOA / th", "Mgmt %": "Quản lý %", "Maintenance %": "Bảo trì %", "Utilities / mo": "Tiện ích / th", "PITI override / mo": "Ghi đè PITI / th", "Monthly PITI": "PITI hàng tháng", "NOI / yr": "NOI / năm", "Cap rate": "Tỷ suất vốn hóa","Cash flow": "Dòng tiền", "Debt safety (DSCR)": "An toàn nợ (DSCR)", "Price per sq ft (home)": "Giá mỗi sqft (nhà)", "Home sq ft vs price": "DT nhà so với giá", "Lot sq ft vs price": "DT lô so với giá", "Cap rate": "Tỷ suất vốn hóa", "Print": "In", "Mobile view": "Xem di động", "PITI (monthly)": "PITI (hàng tháng)", "Operating expenses (monthly)": "Chi phí vận hành (hàng tháng)", "Mortgage (P&I) / mo": "Vay gốc&lãi / th", "Property tax / mo": "Thuế BĐS / th", "Insurance / mo": "Bảo hiểm / th", "Management % of rent": "Quản lý % tiền thuê", "Management flat fee / mo": "Phí quản lý cố định / th", "Utilities (owner-paid)": "Tiện ích (chủ trả)", "+ Add utility": "+ Thêm tiện ích", "+ Property": "+ BĐS", "Added properties:": "BĐS đã thêm:", "REPS": "REPS", "REPS Hours Log": "Nhật ký giờ REPS", "REPS hours": "Giờ REPS", "Tax year": "Năm thuế", "Hours by category": "Giờ theo hạng mục", "Activity": "Hoạt động", "Time": "Thời gian", "Portfolio-wide": "Toàn danh mục", "+ Add entry": "+ Thêm mục", "Start stopwatch": "Bắt đầu bấm giờ", "Stop stopwatch": "Dừng bấm giờ", "Rental Operations": "Vận hành cho thuê", "Acquisition": "Thu mua", "Leasing & Tenant Placement": "Cho thuê & Tìm khách", "Development": "Phát triển", "Construction": "Xây dựng", "Rental income / mo": "Thu nhập thuê / th", "Operating expenses / mo": "Chi phí vận hành / th", "Dark": "Tối", "Light": "Sáng", "Blended cap rate": "Cap tổng hợp", "Blended cash-on-cash": "CoC tổng hợp", "Total monthly P&I": "Tổng G&L hàng tháng", "Cash flow / mo": "Dòng tiền / th", "PITI / mo": "PITI / th", "Payoff date": "Ngày tất toán", "Payments made": "Kỳ đã trả", "Payments left": "Kỳ còn lại", "% paid off": "% đã trả", "Home square feet": "Diện tích nhà (sqft)", "Lot square feet": "Diện tích lô (sqft)", "Estimated market value": "Giá trị thị trường ước tính", "Purchase date": "Ngày mua", "Down payment %": "Trả trước %", "Interest rate %": "Lãi suất %", "Loan term (years)": "Thời hạn vay (năm)", "Loan start date": "Ngày bắt đầu vay", "Current loan balance (override)": "Dư nợ hiện tại (nhập tay)", "Gross rent / month": "Tiền thuê gộp / th", "Insurance / year": "Bảo hiểm / năm", "HOA / month": "HOA / th", "Management %": "Quản lý %", "Utilities / month": "Tiện ích / th", "Monthly PITI (editable)": "PITI hàng tháng (nhập tay)", "Margin": "Biên LN", "Margin Deal Calculator": "Máy tính biên giao dịch", "Deal inputs": "Số liệu giao dịch", "After-repair value (ARV)": "Giá trị sau sửa (ARV)", "Rehab / repairs": "Sửa chữa", "Holding costs": "Chi phí nắm giữ", "Selling costs": "Chi phí bán", "Wholesale fee (optional)": "Phí bán sỉ (tùy chọn)", "Deal margin": "Biên lợi nhuận", "All-in cost": "Tổng chi phí", "Projected profit": "Lợi nhuận dự kiến", "Max offer (70% rule)": "Giá tối đa (quy tắc 70%)", "Est. wholesale fee": "Phí bán sỉ ước tính", "Pull from current deal": "Lấy từ giao dịch hiện tại", "Log to Deal Log": "Ghi vào Nhật ký", "Wholesale": "Bán sỉ", "Fix & Flip": "Sửa & bán", "Buy & Hold / BRRR": "Mua & giữ / BRRR", "Pass": "Bỏ qua", "WHOLESALE": "BÁN SỈ", "FIX & FLIP": "SỬA & BÁN", "BUY & HOLD / BRRR": "MUA & GIỮ / BRRR", "PASS — TOO THIN": "BỎ QUA — LỢI NHUẬN MỎNG", "Team": "Đội ngũ", "A-List Team": "Đội ngũ A-List", "Contractors": "Nhà thầu", "A-List team — all regions": "Đội ngũ A-List — mọi khu vực", "Contractors — by region": "Nhà thầu — theo khu vực", "Region coverage": "Khu vực phụ trách", "All regions": "Tất cả khu vực", "Profession": "Nghề", "Trade": "Nghề", "+ Region": "+ Khu vực", "Delete region": "Xóa khu vực", "+ Add": "+ Thêm", "None yet.": "Chưa có.", "No contacts yet.": "Chưa có liên hệ.", "Realtors & Wholesalers": "Môi giới & Bán sỉ", "General Contractors": "Nhà thầu chính", "Lender Team": "Nhóm cho vay", "Property Managers": "Quản lý BĐS", "Architects": "Kiến trúc sư", "Other": "Khác", "Realtor / Wholesaler": "Môi giới / Bán sỉ", "General Contractor": "Nhà thầu chính", "Lender": "Cho vay", "Property Manager": "Quản lý BĐS", "Architect": "Kiến trúc sư", "Plumber": "Thợ ống nước", "Electrician": "Thợ điện", "Handyman": "Thợ sửa chữa", "Flooring": "Sàn", "Cabinet": "Tủ bếp", "Roofing": "Mái", "Windows": "Cửa sổ", "Painter": "Thợ sơn", "Landscaper": "Thợ cảnh quan", "Projected 10-yr net gain": "Lãi ròng dự kiến 10 năm", "Annual CF": "Dòng tiền năm",  "Cash-on-cash": "Lợi nhuận tiền mặt", "Current equity": "Vốn sở hữu hiện tại", "Loan paid off": "Khoản vay đã trả", "Tenants": "Người thuê", "Phone": "Điện thoại", "Unit": "Căn", "Lease start": "Bắt đầu thuê", "Lease end": "Kết thúc thuê", "Rent/mo": "Thuê/th", "Deposit": "Đặt cọc", "Status": "Trạng thái", "Notes": "Ghi chú", "No tenants yet.": "Chưa có người thuê.", "Documents": "Tài liệu", "Category": "Danh mục", "Title": "Tiêu đề", "Cloud URL": "Đường dẫn đám mây", "Local file": "Tệp cục bộ", "Date": "Ngày", "Open": "Mở", "No documents yet.": "Chưa có tài liệu.", "Deal log": "Nhật ký giao dịch", "Address ": "Địa chỉ ", "Ask $": "Giá chào $", "Cap%": "Cap%", "CoC%": "CoC%", "Verdict": "Kết luận", "No deals logged yet.": "Chưa ghi giao dịch nào.", "Market rent comps": "Giá thuê tham chiếu thị trường", "City/Area": "Thành phố/Khu vực", "Bd": "PN", "Ba": "PT", "SqFt": "Sqft", "Source": "Nguồn", "No comps yet.": "Chưa có dữ liệu.", "Underwriting defaults": "Giá trị mặc định", "Backup & export": "Sao lưu & xuất", "About": "Giới thiệu", "Backup all (JSON)": "Sao lưu (JSON)", "Restore (JSON)": "Khôi phục (JSON)", "Down payment %": "Trả trước %", "Interest rate %": "Lãi suất %", "Loan term (yrs)": "Thời hạn vay (năm)", "Insurance $/yr": "Bảo hiểm $/năm", "Property mgmt %": "Quản lý %", "Closing costs %": "Chi phí đóng %", "No properties in this portfolio yet.": "Danh mục này chưa có BĐS.", "Cash-on-cash return": "Lợi nhuận trên tiền mặt", "Gross rent multiplier": "Hệ số tổng tiền thuê", "Break-even occupancy": "Tỷ lệ lấp đầy hòa vốn", "Break-even occ.": "Lấp đầy hòa vốn", "Effective monthly rent (after vacancy)": "Tiền thuê thực tế hàng tháng (sau trống)", "Monthly operating expenses": "Chi phí vận hành hàng tháng", "Cash flow per unit": "Dòng tiền mỗi căn", "Cash to close": "Tiền mặt để đóng", "Max price for break-even CF": "Giá tối đa để hòa vốn dòng tiền", "Rent needed for break-even CF": "Tiền thuê cần để hòa vốn", "School quality": "Chất lượng trường học", "School rating": "Điểm trường học", "Appreciation (assumed)": "Tăng giá (giả định)", "Net monthly cash flow": "Dòng tiền ròng hàng tháng", "Exceptional": "Xuất sắc", "Strong": "Mạnh", "Solid": "Vững", "Marginal": "Cận biên", "Weak": "Yếu", "Poor": "Kém", "PASS": "BỎ QUA", "THIN": "MỎNG", "MARGINAL": "CẬN BIÊN", "STRONG": "MẠNH"};
 function _tnode(root){if(lang!=='vi'||!root)return;var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),n,arr=[];while(n=w.nextNode())arr.push(n);arr.forEach(function(t){var s=t.nodeValue;if(!s)return;var k=s.trim();if(!k)return;var nv=null;if(TR[k])nv=s.replace(k,TR[k]);else if(/^Compare( - \d+)?$/.test(k))nv=s.replace('Compare','So sánh');if(nv===null||nv===s)return;var par=t.parentNode;if(par&&par.tagName==='OPTION'&&!par.hasAttribute('value'))par.setAttribute('value',k);t.nodeValue=nv;});root.querySelectorAll('[placeholder]').forEach(function(e){var k=e.getAttribute('placeholder');if(TR[k])e.setAttribute('placeholder',TR[k]);});root.querySelectorAll('[title]').forEach(function(e){var k=e.getAttribute('title');if(TR[k])e.setAttribute('title',TR[k]);});}
 function applyLang(){var a=document.getElementById('app');if(a)_tnode(a);}
 function setupLangObserver(){var a=document.getElementById('app');if(!a||!window.MutationObserver)return;var busy=false;var ob=new MutationObserver(function(){if(lang!=='vi'||busy)return;busy=true;_tnode(a);busy=false;});ob.observe(a,{childList:true,subtree:true,characterData:true});}
@@ -933,8 +1032,8 @@ function marginHTML(){
   var left='<div class="card"><div class="seg">Deal inputs</div>'+
     inRow("After-repair value (ARV)","mgArv",m.arv)+inRow("Purchase price","mgPur",m.pur)+inRow("Rehab / repairs","mgReh",m.reh)+
     inRow("Closing costs","mgClo",m.clo)+inRow("Holding costs","mgHol",m.hol)+inRow("Selling costs","mgSel",m.sel)+inRow("Wholesale fee (optional)","mgWf",m.wf)+
-    '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="chip" id="mgPull">Pull from current deal</button><button class="chip" id="mgLog">Log to Deal Log</button></div></div>';
-  var hero='<div style="background:'+C.ink+';color:'+C.paper+';border-radius:14px;padding:18px;text-align:center"><div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#B9B3A6;font-weight:700">Deal margin</div><div id="mgPct" style="font-size:46px;font-weight:800;margin:4px 0;font-variant-numeric:tabular-nums;line-height:1">—</div><span id="mgBadge" style="display:inline-block;font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:999px;margin-top:4px">—</span></div>';
+    '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="chip" id="mgPull">Pull from current deal</button></div></div>';
+  var hero='<div class="fx-hero" style="padding:18px;text-align:center"><div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#B9B3A6;font-weight:700">Deal margin</div><div id="mgPct" style="font-size:46px;font-weight:800;margin:4px 0;font-variant-numeric:tabular-nums;line-height:1">—</div><span id="mgBadge" style="display:inline-block;font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:999px;margin-top:4px">—</span></div>';
   var metrics='<div class="card" style="margin-top:12px">'+
     '<div class="row"><span class="lab">All-in cost</span><span class="out" id="mgAllin">—</span></div>'+
     '<div class="row"><span class="lab">Projected profit</span><span class="out" id="mgProfit">—</span></div>'+
@@ -1205,6 +1304,8 @@ function importAllJSON(file){var rd=new FileReader();rd.onload=function(){try{va
   if(d.contractors){contractors=d.contractors;saveContractors();}
   if(d.margin){marginData=d.margin;saveMargin();}
   if(d.repsLog){repsLog=d.repsLog;repsYear=d.repsYear||(new Date()).getFullYear();saveReps();}
+  if(d.endGame){endGame=d.endGame;saveEndGame();loadEndGame();}
+  if(d.cmpSel){cmpSel=d.cmpSel;saveCmp();}
   alert("Backup restored.");renderApp();
 }catch(e){alert("Could not read that backup file.");}};rd.readAsText(file);}
 
@@ -1517,6 +1618,373 @@ function buildDealSummary(){
     '</table>'+
     '<div style="font-size:9.5px;color:#9a9a9a;margin-top:10px">Screening aid only, not financial advice &middot; Real Estate Investment Platform</div></div>';
 }
+
+/* ================= v1.4 FX THEME (Fintech Dark) — visual layer only, no calculation changes ================= */
+(function(){
+  var FXD={ink:"#E6EDF6",paper:"#0A0F1A",panel:"#111A2A",line:"#22304A",muted:"#9FB2C8",faint:"#6F85A0",go:"#34F5B5",goSoft:"#0E2E2A",bad:"#FF6B81",badSoft:"#3A1822",warn:"#FBBF24",warnSoft:"#33290F",inputBg:"#0D1524"};
+  for(var k in FXD)PAL_DARK[k]=FXD[k];
+})();
+var _fxApplyVars=applyThemeVars;
+applyThemeVars=function(){
+  if(THEME_DARK){GREEN_H="#34F5B5";AMBER_H="#FBBF24";RED_H="#FF6B81";}else{GREEN_H="#5FC98C";AMBER_H="#E3B455";RED_H="#F08A7E";}
+  _fxApplyVars();document.documentElement.classList.toggle("fx-dark",!!THEME_DARK);
+  var mc=document.querySelector('meta[name=theme-color]');if(mc)mc.content=THEME_DARK?"#0A0F1A":"#FBFAF7";
+};
+/* dark is the default look; a saved "Light" choice is still respected */
+initTheme=function(){var v=null;try{v=store.get("rp_dark");}catch(e){}THEME_DARK=(v!=="0");applyThemeVars();};
+
+function fxGauge(val,max,col,size){
+  var r=size/2-9,c=2*Math.PI*r,arc=c*0.75,f=arc*Math.max(0,Math.min(1,val/max)),cx=size/2;
+  return '<svg class="fx-gauge" width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" aria-hidden="true"><g transform="rotate(135 '+cx+' '+cx+')">'+
+    '<circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+arc+' '+c+'"/>'+
+    '<circle class="arc" cx="'+cx+'" cy="'+cx+'" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+f+' '+c+'" style="--len:'+f+';stroke-dashoffset:0;filter:drop-shadow(0 0 6px '+col+')"/></g></svg>';
+}
+/* 10-year projection: cumulative cash flow + loan paydown (+ assumed appreciation) — derived from the deal inputs */
+function fxProjection(m){
+  var d=deal||{},price=num(d.price),r=num(d.rate)/100/12,n=num(d.termYears)*12,appr=num(d.apprPct)/100,bal=m.loan,pts=[];
+  for(var y=0;y<=10;y++){
+    if(y>0){for(var i=0;i<12;i++){if(bal<=0)break;var iv=bal*r;bal=Math.max(0,bal-(m.pi-iv));}}
+    var val=price*Math.pow(1+appr,y);pts.push({y:y,eq:(val-bal),cum:m.acf*y});}
+  return pts;
+}
+function fxSpark(m){
+  var pts=fxProjection(m),W=320,H=78,P=4;
+  var vals=pts.map(function(p){return p.eq+p.cum-m.cashToClose;}),mn=Math.min.apply(null,vals.concat([0])),mx=Math.max.apply(null,vals);if(mx===mn)mx=mn+1;
+  var X=function(i){return P+i*(W-2*P)/10;},Y=function(v){return H-P-(v-mn)/(mx-mn)*(H-2*P);};
+  var line=vals.map(function(v,i){return (i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1);}).join(' ');
+  var up=vals[10]>=0,col=up?"#34F5B5":"#FF6B81";
+  return '<div style="margin-top:14px"><div style="display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#6F85A0"><span>Projected 10-yr net gain</span><span class="out" style="letter-spacing:0;color:'+col+';font-weight:700">'+money(vals[10])+'</span></div>'+
+    '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" style="width:100%;height:'+H+'px;display:block;margin-top:4px"><defs><linearGradient id="fxSg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="'+col+'" stop-opacity=".40"/><stop offset="1" stop-color="'+col+'" stop-opacity="0"/></linearGradient></defs>'+
+    '<path d="'+line+' L'+X(10)+' '+(H-P)+' L'+X(0)+' '+(H-P)+'Z" fill="url(#fxSg)"/><path d="'+line+'" fill="none" stroke="'+col+'" stroke-width="2.2" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>'+
+    '<div style="font-size:10.5px;color:#6F85A0;margin-top:3px">Equity gain (loan paydown + '+pct(num(deal.apprPct))+'/yr assumed appreciation) + cumulative cash flow, minus cash to close</div></div>';
+}
+function fxHero(m){
+  var minis=[["Annual CF",money(m.acf),m.acf>=0],["Cash-on-cash",pct(m.coc),m.coc>=0],["Cap rate",pct(m.cap),true]];
+  return '<div class="fx-hero">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px">'+
+      '<div style="min-width:0"><div class="seg" style="color:#7F95AD">Monthly cash flow</div>'+
+      '<div class="out fx-big '+(m.mcf>=0?'fx-pos':'fx-neg')+'" style="margin-top:4px">'+(m.mcf>=0?'+':'')+money(m.mcf)+'</div>'+
+      '<div style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:'+m.vSoft+';color:'+m.vColor+';border:1px solid '+m.vColor+'55;border-radius:999px;padding:4px 12px;font-weight:700;font-size:12px;letter-spacing:.08em">'+(m.mcf>=0?'▲ ':'▼ ')+m.verdict+'</div></div>'+
+      '<div style="position:relative;width:118px;height:118px;flex:none">'+fxGauge(m.grade,10,m.gm.hi,118)+
+        '<div style="position:absolute;inset:0;display:grid;place-items:center;text-align:center"><div><div class="out" style="font-size:30px;font-weight:800;color:#fff;line-height:1">'+m.grade.toFixed(1)+'</div>'+
+        '<div style="font-size:10px;letter-spacing:.08em;color:#7F95AD;margin-top:3px">/ 10</div><div style="font-size:11px;color:'+m.gm.hi+';font-weight:600">'+m.gm.word+'</div></div></div></div></div>'+
+    '<p style="margin:10px 0 0;font-size:12.5px;color:#9FB2C8;line-height:1.45">'+m.vNote+'</p>'+
+    fxSpark(m)+
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px">'+
+    minis.map(function(x){return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 10px"><div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7F95AD">'+x[0]+'</div><div class="out" style="font-size:15px;font-weight:700;margin-top:2px;color:'+(x[2]?GREEN_H:RED_H)+'">'+x[1]+'</div></div>';}).join('')+
+    '</div></div>';
+}
+var _fxResults=resultsHTML;
+resultsHTML=function(m){
+  var h=_fxResults(m),cut=h.indexOf('<div class="card" style="margin-top:16px">');
+  if(cut>0)h=fxHero(m)+h.slice(cut);
+  /* glowing gradient bars in the grade breakdown */
+  var G={};G[C.go]="linear-gradient(90deg,#22d3a5,#34F5B5)";G[C.warn]="linear-gradient(90deg,#f59e0b,#FBBF24)";G[C.bad]="linear-gradient(90deg,#e11d48,#FF6B81)";
+  if(THEME_DARK)h=h.replace(/height:100%;background:(#[0-9A-Fa-f]{6});border-radius:999px/g,function(all,c){return G[c]?'height:100%;background:'+G[c]+';border-radius:999px;box-shadow:0 0 10px '+c+'66':all;});
+  return h;
+};
+
+var FX_ICONS={
+  tabA:'<path d="M3 11l9-7 9 7v9H3z"/><path d="M9 20v-6h6v6"/>',
+  tabP:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  tabL:'<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+  tabC:'<path d="M7 4L3 8l4 4"/><path d="M3 8h14"/><path d="M17 12l4 4-4 4"/><path d="M21 16H7"/>',
+  tabM:'<circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/>',
+  tabT:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c2.9.3 5 2.6 5 5.8"/>',
+  tabG:'<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>',
+  tabR:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/>',
+  tabS:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  langBtn:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/>',
+  darkBtn:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'
+};
+function fxDecorate(){
+  for(var id in FX_ICONS){var b=document.getElementById(id);if(b&&!b.querySelector('.fx-ic')){
+    var ic=id==="darkBtn"&&THEME_DARK?'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>':FX_ICONS[id];
+    b.insertAdjacentHTML('afterbegin','<svg class="fx-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ic+'</svg>');}}
+  var seg=document.querySelector('#app .seg');
+  if(seg&&!document.querySelector('#app .fx-logo')){
+    var blk=seg.parentNode,wrapEl=document.createElement('div');wrapEl.style.cssText='display:flex;align-items:center;gap:14px';
+    blk.parentNode.insertBefore(wrapEl,blk);wrapEl.appendChild(Object.assign(document.createElement('div'),{className:'fx-logo',innerHTML:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#04121d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg>'}));wrapEl.appendChild(blk);
+    var bar=seg.querySelector('span');if(bar)bar.style.display='none';}
+}
+var _fxRender=renderApp,_fxLastView=null;
+renderApp=function(){
+  _fxRender.apply(this,arguments);
+  try{fxDecorate();var app=document.getElementById("app");
+    if(view!==_fxLastView){_fxLastView=view;app.classList.remove("fx-enter");void app.offsetWidth;app.classList.add("fx-enter");
+      clearTimeout(renderApp._t);renderApp._t=setTimeout(function(){app.classList.remove("fx-enter");},900);}
+  }catch(e){}
+};
+
+/* ================= v1.4: Deal Comparison Analysis + End Game ================= */
+(function(){var add={"Deal Comparison Analysis":"Phân tích so sánh giao dịch","REPS Log":"Nhật ký REPS","Market Rent Comps":"Giá thuê thị trường","Freedom":"Tự do tài chính",
+  "Select all":"Chọn tất cả","Clear":"Bỏ chọn","Sort by":"Sắp xếp theo","Best overall":"Tốt nhất tổng thể","Top pick":"Lựa chọn hàng đầu","Deal score":"Điểm giao dịch",
+  "Leaderboard":"Bảng xếp hạng","Detailed comparison":"So sánh chi tiết","Your Freedom number":"Con số tự do của bạn","Rental income (paid off)":"Thu nhập cho thuê (đã trả hết nợ)",
+  "Other income sources":"Nguồn thu nhập khác","Path to freedom":"Lộ trình tự do tài chính","Build your number":"Tính con số của bạn","+ Add income":"+ Thêm thu nhập","+ Add expense":"+ Thêm chi phí",
+  "Use as my target":"Dùng làm mục tiêu","Freedom year":"Năm tự do","Passive income today":"Thu nhập thụ động hiện tại","At full payoff":"Khi trả hết nợ","Gap to goal":"Còn thiếu",
+  "Pension":"Lương hưu","401k / IRA":"401k / IRA","Social Security":"An sinh xã hội","Dividends":"Cổ tức","Business":"Kinh doanh","Rentals":"Cho thuê","Open":"Mở"};
+  for(var k in add)TR[k]=add[k];})();
+
+/* ---------- Deal Comparison Analysis ---------- */
+var cmpSel=null,cmpSort="best";
+try{var _cs=store.get("rp_cmpSel");cmpSel=_cs?JSON.parse(_cs):null;cmpSort=store.get("rp_cmpSort")||"best";}catch(e){}
+function saveCmp(){try{store.set("rp_cmpSel",JSON.stringify(cmpSel));store.set("rp_cmpSort",cmpSort);}catch(e){}}
+function dealScore(m){return 0.6*m.grade+0.4*scoreCF(m.mcf);}
+var CMP_SORTS={best:["Best overall",function(a,b){return (b.score-a.score)||(b.m.mcf-a.m.mcf);}],
+  grade:["Grade",function(a,b){return (b.m.grade-a.m.grade)||(b.m.mcf-a.m.mcf);}],
+  cf:["Monthly cash flow",function(a,b){return (b.m.mcf-a.m.mcf)||(b.m.grade-a.m.grade);}],
+  coc:["Cash-on-cash",function(a,b){return b.m.coc-a.m.coc;}],
+  cap:["Cap rate",function(a,b){return b.m.cap-a.m.cap;}],
+  cash:["Cash to close (lowest)",function(a,b){return a.m.cashToClose-b.m.cashToClose;}]};
+function cmpRanked(){
+  var ids=deals.map(function(x){return x.id;});
+  if(!cmpSel)cmpSel=ids.slice();cmpSel=cmpSel.filter(function(id){return ids.indexOf(id)>=0;});
+  var cols=deals.filter(function(x){return cmpSel.indexOf(x.id)>=0;}).map(function(x){var m=compute(normalize(x.deal));return{id:x.id,name:x.name,m:m,score:dealScore(m)};});
+  cols.sort((CMP_SORTS[cmpSort]||CMP_SORTS.best)[1]);return cols;
+}
+function cmpMiniGauge(g,col){var s=58,r=22,c=2*Math.PI*r,arc=c*.75,f=arc*Math.max(0,Math.min(1,g/10));
+  return '<div style="position:relative;width:'+s+'px;height:'+s+'px;flex:none"><svg width="'+s+'" height="'+s+'" viewBox="0 0 '+s+' '+s+'"><g transform="rotate(135 29 29)"><circle cx="29" cy="29" r="'+r+'" fill="none" stroke="'+C.line+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+arc+' '+c+'"/><circle cx="29" cy="29" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+f+' '+c+'" style="filter:drop-shadow(0 0 4px '+col+')"/></g></svg>'+
+  '<div class="out" style="position:absolute;inset:0;display:grid;place-items:center;font-size:15px;font-weight:800;color:'+C.ink+'">'+g.toFixed(1)+'</div></div>';}
+function compareHTML(){
+  var cols=cmpRanked();
+  var h='<div style="margin-bottom:14px"><div class="seg">Rank · select · compare</div><h2 style="margin:4px 0 2px;font-size:22px">Deal Comparison Analysis</h2>'+
+    '<p style="margin:0;font-size:13px;color:'+C.muted+'">Pick the deals from your Analyze list to compare. They are ranked best to worst.</p></div>';
+  h+='<div class="card" style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">'+
+    '<div class="seg">Deals in comparison · '+cmpSel.length+' of '+deals.length+'</div>'+
+    '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button class="chip" id="cmpAll">Select all</button><button class="chip" id="cmpNone">Clear</button>'+
+    '<label style="font-size:12px;color:'+C.muted+';margin-left:6px">Sort by</label><select id="cmpSortSel" class="in text" style="width:auto;padding:7px 10px">'+
+    Object.keys(CMP_SORTS).map(function(k){return '<option value="'+k+'"'+(k===cmpSort?' selected':'')+'>'+CMP_SORTS[k][0]+'</option>';}).join('')+'</select></div></div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">'+deals.map(function(x){var on=cmpSel.indexOf(x.id)>=0;
+      return '<button class="chip cmp-pick'+(on?' active':'')+'" data-cid="'+x.id+'" style="display:inline-flex;align-items:center;gap:7px">'+
+      '<span style="width:15px;height:15px;border-radius:4px;display:inline-grid;place-items:center;border:1.5px solid currentColor;font-size:11px;line-height:1">'+(on?'✓':'')+'</span>'+esc(x.name)+'</button>';}).join('')+'</div></div>';
+  if(deals.length<2)return h+'<div class="card"><p style="font-size:14px;color:'+C.muted+';margin:0;line-height:1.5">Add a second deal to compare. Use <b>+ New</b> in the Analyze tab to create another property, then come back here.</p></div>';
+  if(cols.length<2)return h+'<div class="card"><p style="font-size:14px;color:'+C.muted+';margin:0">Select at least two deals above to compare them.</p></div>';
+  /* leaderboard */
+  var medal=["#FBBF24","#C0CCDA","#D08A4E"];
+  h+='<div class="seg" style="margin:4px 0 10px">Leaderboard</div><div class="cmp-board">';
+  cols.forEach(function(c,i){var m=c.m,top=i===0;
+    h+='<div class="card cmp-card'+(top?' cmp-top':'')+'"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">'+
+      '<div style="min-width:0"><div style="display:flex;align-items:center;gap:8px"><span class="cmp-rank" style="background:'+(medal[i]||'transparent')+';color:'+(i<3?'#0A0F1A':C.muted)+';border-color:'+(medal[i]||C.line)+'">#'+(i+1)+'</span>'+
+      (top?'<span style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#FBBF24;font-weight:700">Top pick</span>':'')+'</div>'+
+      '<div style="font-weight:700;font-size:15px;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(c.name)+'</div>'+
+      '<div class="out '+(m.mcf>=0?'fx-pos':'fx-neg')+'" style="font-size:24px;font-weight:800;margin-top:4px">'+(m.mcf>=0?'+':'')+money(m.mcf)+'<span style="font-size:12px;color:'+C.faint+';font-weight:500"> /mo</span></div></div>'+
+      cmpMiniGauge(m.grade,m.gm.hi)+'</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px">'+
+      [["CoC",pct(m.coc),m.coc>=0],["Cap",pct(m.cap),true],["DSCR",mult(m.dscr),m.dscr>=1]].map(function(x){return '<div style="background:'+C.inputBg+';border:1px solid '+C.line+';border-radius:9px;padding:6px 8px"><div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:'+C.faint+'">'+x[0]+'</div><div class="out" style="font-weight:700;font-size:13.5px;color:'+(x[2]?C.ink:C.bad)+'">'+x[1]+'</div></div>';}).join('')+'</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px"><span style="display:inline-block;background:'+m.vSoft+';color:'+m.vColor+';border-radius:999px;padding:3px 10px;font-weight:700;font-size:11px;letter-spacing:.08em">'+m.verdict+'</span>'+
+      '<span style="font-size:11.5px;color:'+C.muted+'">Deal score <b class="out" style="color:'+C.ink+'">'+c.score.toFixed(1)+'</b></span><button class="chip cmpOpen" data-id="'+c.id+'" style="padding:4px 10px">Open</button></div></div>';});
+  h+='</div>';
+  /* cash-flow chart */
+  var mx=Math.max.apply(null,cols.map(function(c){return Math.abs(c.m.mcf);}).concat([1]));
+  var anyNeg=cols.some(function(c){return c.m.mcf<0;}),anyPos=cols.some(function(c){return c.m.mcf>=0;});
+  var zero=anyNeg&&anyPos?50:(anyNeg?100:0),span=anyNeg&&anyPos?50:100;
+  h+='<div class="card" style="margin-top:16px"><div class="seg">Monthly cash flow · ranked</div><div style="margin-top:12px">'+
+    cols.map(function(c,i){var v=c.m.mcf,w=Math.abs(v)/mx*span,left=v>=0?zero:zero-w,col=v>=0?GREEN_H:RED_H;
+      return '<div class="cmp-bar-row"><div class="cmp-bar-lab"><span style="color:'+C.faint+'">#'+(i+1)+'</span> '+esc(c.name)+'</div>'+
+      '<div style="position:relative;height:22px;background:'+C.inputBg+';border-radius:6px;flex:1;overflow:hidden">'+(anyNeg&&anyPos?'<div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:'+C.faint+'"></div>':'')+
+      '<div class="cmp-bar" style="position:absolute;top:3px;bottom:3px;left:'+left+'%;width:'+Math.max(w,.6)+'%;background:'+col+';border-radius:4px;box-shadow:0 0 12px '+col+'66"></div></div>'+
+      '<div class="out" style="width:92px;text-align:right;font-weight:700;color:'+col+'">'+money(v)+'</div></div>';}).join('')+'</div></div>';
+  /* detailed table */
+  var rows=[
+    {l:"Deal score",g:function(c){return c.score;},f:function(v){return v.toFixed(1)+" /10";},b:"high",bold:true},
+    {l:"Grade",g:function(c){return c.m.grade;},f:function(v){return v.toFixed(1)+" /10";},b:"high",bold:true},
+    {l:"Verdict",g:function(c){return c.m.verdict;},f:function(v){return v;},b:null},
+    {l:"Monthly cash flow",g:function(c){return c.m.mcf;},f:money,b:"high",bold:true},
+    {l:"Cash-on-cash",g:function(c){return c.m.coc;},f:pct,b:"high"},
+    {l:"Cap rate",g:function(c){return c.m.cap;},f:pct,b:"high"},
+    {l:"DSCR",g:function(c){return c.m.dscr;},f:mult,b:"high"},
+    {l:"GRM",g:function(c){return c.m.grm;},f:mult,b:"low"},
+    {l:"School rating",g:function(c){return c.m.school;},f:function(v){return v.toFixed(0)+"/10";},b:"high"},
+    {l:"Break-even occ.",g:function(c){return c.m.breakevenOcc;},f:pct,b:"low"},
+    {l:"Cash to close",g:function(c){return c.m.cashToClose;},f:money,b:"low"},
+    {l:"Gross rent / mo",g:function(c){return c.m.grossMo;},f:money,b:"high"},
+    {l:"NOI / yr",g:function(c){return c.m.noi;},f:money,b:"high"}];
+  function best(row){if(!row.b)return -1;var bi=0,bv=row.g(cols[0]);cols.forEach(function(c,i){var v=row.g(c);if(row.b==="high"?v>bv:v<bv){bv=v;bi=i;}});return bi;}
+  h+='<div class="seg" style="margin:20px 0 10px">Detailed comparison</div><div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table class="cmp-tbl"><thead><tr><th class="cmp-sticky" style="text-align:left">Metric</th>'+
+    cols.map(function(c,i){return '<th style="text-align:right;min-width:130px"><div style="font-size:10.5px;color:'+C.faint+'">#'+(i+1)+'</div><div style="font-size:12.5px;color:'+C.ink+';text-transform:none;letter-spacing:0">'+esc(c.name)+'</div></th>';}).join('')+'</tr></thead><tbody>';
+  rows.forEach(function(row){var bi=best(row);h+='<tr><td class="cmp-sticky" style="font-weight:'+(row.bold?600:400)+'">'+row.l+'</td>'+
+    cols.map(function(c,i){var v=row.g(c),color=C.ink;if(row.l==="Monthly cash flow")color=v>=0?C.go:C.bad;if(row.l==="Verdict")color=c.m.vColor;
+      return '<td class="out'+(i===bi?' cmp-best':'')+'" style="text-align:right;font-weight:'+(row.bold||i===bi?700:500)+';color:'+color+'">'+row.f(v)+'</td>';}).join('')+'</tr>';});
+  h+='</tbody></table></div><p style="font-size:11.5px;color:'+C.faint+';margin:0;padding:10px 16px;line-height:1.55"><b>How ranking works:</b> "Best overall" uses a Deal score = 60% property grade + 40% cash-flow score (both 0–10), with ties broken by higher monthly cash flow. The grade itself already weights cash flow and debt safety most heavily, so a deal needs both a strong grade and real cash flow to rank #1. Highlighted cell = best in row (lower is better for GRM, break-even occupancy and cash to close).</p></div>';
+  return h;
+}
+function attachCompare(){
+  document.querySelectorAll(".cmpOpen").forEach(function(b){b.onclick=function(){currentId=b.getAttribute("data-id");var e=deals.find(function(x){return x.id===currentId;});deal=normalize(e.deal);e.deal=deal;save();view="analyze";renderApp();};});
+  document.querySelectorAll(".cmp-pick").forEach(function(b){b.onclick=function(){var id=b.getAttribute("data-cid"),i=cmpSel.indexOf(id);if(i>=0)cmpSel.splice(i,1);else cmpSel.push(id);saveCmp();renderApp();};});
+  var a=document.getElementById("cmpAll");if(a)a.onclick=function(){cmpSel=deals.map(function(x){return x.id;});saveCmp();renderApp();};
+  var n=document.getElementById("cmpNone");if(n)n.onclick=function(){cmpSel=[];saveCmp();renderApp();};
+  var s=document.getElementById("cmpSortSel");if(s)s.onchange=function(){cmpSort=s.value;saveCmp();renderApp();};
+}
+
+/* ---------- End Game ---------- */
+var EG_TYPES=[["Pension","#7CB8FF"],["401k / IRA","#A78BFA"],["Social Security","#60E0F0"],["Dividends","#FBBF24"],["Business","#F472B6"],["Other","#9FB2C8"]];
+var EG_RENT_COL="#34F5B5";
+var endGame=null;
+function loadEndGame(){try{var r=store.get("rp_endgame");endGame=r?JSON.parse(r):null;}catch(e){endGame=null;}
+  if(!endGame)endGame={target:15000,retireYear:"",reserve:5,incl:{},incomes:[],buffer:20,
+    expenses:[{name:"Housing",amt:4500},{name:"Food & dining",amt:1500},{name:"Healthcare / insurance",amt:1500},{name:"Transportation",amt:800},{name:"Travel & fun",amt:1500},{name:"Family & kids",amt:1200},{name:"Other",amt:1000}]};
+  endGame.incl=endGame.incl||{};endGame.incomes=endGame.incomes||[];endGame.expenses=endGame.expenses||[];}
+function saveEndGame(){try{store.set("rp_endgame",JSON.stringify(endGame));}catch(e){}}
+function egProps(){var out=[];portfolios.forEach(function(pf){(pf.props||[]).forEach(function(p){out.push({p:p,pf:pf});});});return out;}
+function egPropCalc(p){
+  var c=pCalc(p),rent=num(p.rent),res=rent*num(endGame.reserve)/100;
+  var paidOff=rent*(1-num(p.vacPct)/100)-c.taxMo-c.insMo-c.otherOpexMo-res;
+  var n=num(p.termYears)*12,now=new Date(),py;
+  if(c.loan<=0||c.balNow<=0)py=now.getFullYear();
+  else{var st=p.loanStart||p.purchaseDate,d;if(st){d=new Date(st);d.setMonth(d.getMonth()+n);}else{d=new Date();d.setMonth(d.getMonth()+n);}py=Math.max(now.getFullYear(),d.getFullYear());}
+  var today=py<=now.getFullYear()?paidOff:c.mcf-res;
+  return{today:today,paidOff:paidOff,payYear:py,c:c};}
+function egIncluded(){return egProps().filter(function(x){return endGame.incl[x.p.id]!==false;});}
+function egAt(year){var parts={Rentals:0};EG_TYPES.forEach(function(t){parts[t[0]]=0;});
+  egIncluded().forEach(function(x){var e=egPropCalc(x.p);parts.Rentals+=(year>=e.payYear?e.paidOff:e.today);});
+  endGame.incomes.forEach(function(i){var sy=num(i.start)||0;if(!sy||year>=sy)parts[i.type in parts?i.type:"Other"]+=num(i.amt);});
+  var tot=0;for(var k in parts)tot+=parts[k];return{parts:parts,total:tot};}
+function egFinal(){var ys=[new Date().getFullYear()];egIncluded().forEach(function(x){ys.push(egPropCalc(x.p).payYear);});endGame.incomes.forEach(function(i){if(num(i.start))ys.push(num(i.start));});return Math.max.apply(null,ys);}
+function egColor(k){if(k==="Rentals")return EG_RENT_COL;var t=EG_TYPES.find(function(t){return t[0]===k;});return t?t[1]:"#9FB2C8";}
+function egRing(nowPct,projPct){var s=210,cx=105,r=90,c=2*Math.PI*r,arc=c*.75;
+  var fp=arc*Math.min(1,Math.max(0,projPct)),fn=arc*Math.min(1,Math.max(0,nowPct));
+  return '<svg class="fx-gauge" width="'+s+'" height="'+s+'" viewBox="0 0 '+s+' '+s+'"><defs><linearGradient id="egGrad" x1="0" x2="1" y1="1" y2="0"><stop offset="0" stop-color="#22d3a5"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs><g transform="rotate(135 '+cx+' '+cx+')">'+
+    '<circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="14" stroke-linecap="round" stroke-dasharray="'+arc+' '+c+'"/>'+
+    '<circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" fill="none" stroke="rgba(124,184,255,.30)" stroke-width="14" stroke-linecap="round" stroke-dasharray="'+fp+' '+c+'"/>'+
+    '<circle class="arc" cx="'+cx+'" cy="'+cx+'" r="'+r+'" fill="none" stroke="url(#egGrad)" stroke-width="14" stroke-linecap="round" stroke-dasharray="'+fn+' '+c+'" style="--len:'+fn+';filter:drop-shadow(0 0 8px rgba(52,245,181,.6))"/></g></svg>';}
+function egTimeline(target){
+  var y0=new Date().getFullYear(),yEnd=Math.max(y0+10,Math.min(y0+40,egFinal()+3)),pts=[],mx=target;
+  for(var y=y0;y<=yEnd;y++){var t=egAt(y).total;pts.push({y:y,v:t});if(t>mx)mx=t;}mx*=1.12;if(mx<=0)mx=1;
+  var sm=window.innerWidth<600,W=sm?400:900,H=sm?220:230,L=sm?44:58,R=12,T=14,B=28,X=function(y){return L+(y-y0)/(yEnd-y0)*(W-L-R);},Y=function(v){return T+(1-Math.max(0,v)/mx)*(H-T-B);};
+  var d='';pts.forEach(function(p,i){d+=(i?'H'+X(p.y).toFixed(1)+'V':'M'+X(p.y).toFixed(1)+' ')+Y(p.v).toFixed(1);});d+='H'+X(yEnd);
+  var fy=null;pts.some(function(p){if(target>0&&p.v>=target){fy=p.y;return true;}return false;});
+  var grid='';for(var g=0;g<=4;g++){var v=mx*g/4;grid+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="'+C.line+'" stroke-width="1"/><text x="'+(L-8)+'" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" fill="'+C.faint+'">$'+Math.round(v/1000)+'k</text>';}
+  var xl='';for(var yy=y0;yy<=yEnd;yy+=(yEnd-y0>25?5:yEnd-y0>12?2:1))xl+='<text x="'+X(yy)+'" y="'+(H-8)+'" text-anchor="middle" font-size="11" fill="'+C.faint+'">'+yy+'</text>';
+  var ry=num(endGame.retireYear),rl=(ry>=y0&&ry<=yEnd)?'<line x1="'+X(ry)+'" x2="'+X(ry)+'" y1="'+T+'" y2="'+(H-B)+'" stroke="#A78BFA" stroke-dasharray="3 4"/><text x="'+(X(ry)+5)+'" y="'+(T+12)+'" font-size="11" fill="#A78BFA">Retire-by '+ry+'</text>':'';
+  var fm=fy?'<circle cx="'+X(fy)+'" cy="'+Y(target)+'" r="7" fill="#FBBF24" style="filter:drop-shadow(0 0 8px #FBBF24)"/><text x="'+Math.min(X(fy)+10,W-150)+'" y="'+(Y(target)-10)+'" font-size="12" font-weight="700" fill="#FBBF24">Freedom · '+fy+'</text>':'';
+  return {fy:fy,svg:'<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block"><defs><linearGradient id="egArea" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#34F5B5" stop-opacity=".35"/><stop offset="1" stop-color="#34F5B5" stop-opacity="0"/></linearGradient></defs>'+grid+
+    '<path d="'+d+'V'+(H-B)+'H'+X(y0)+'Z" fill="url(#egArea)"/><path d="'+d+'" fill="none" stroke="#34F5B5" stroke-width="2.5" style="filter:drop-shadow(0 0 5px rgba(52,245,181,.6))"/>'+
+    (target>0?'<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(target)+'" y2="'+Y(target)+'" stroke="#FBBF24" stroke-width="1.5" stroke-dasharray="6 5"/><text x="'+(L+6)+'" y="'+(Y(target)-6)+'" font-size="11" fill="#FBBF24">Freedom '+money(target)+'/mo</text>':'')+rl+fm+xl+'</svg>'};
+}
+function endGameHTML(){
+  if(!endGame)loadEndGame();
+  var eg=endGame,target=num(eg.target),y0=new Date().getFullYear(),now=egAt(y0),fin=egAt(egFinal()),tl=egTimeline(target);
+  var nowPct=target>0?Math.max(0,now.total)/target:0,finPct=target>0?Math.max(0,fin.total)/target:0,gap=Math.max(0,target-now.total);
+  var seg=Object.keys(fin.parts).filter(function(k){return fin.parts[k]>0;});
+  var h='<div style="margin-bottom:14px"><div class="seg">Financial freedom</div><h2 style="margin:4px 0 2px;font-size:22px">Freedom</h2>'+
+    '<p style="margin:0;font-size:13px;color:'+C.muted+'">The monthly passive income that replaces the 9-to-5, and how close you are. All figures in today\'s dollars.</p></div>';
+  /* hero */
+  h+='<div class="fx-hero eg-hero"><div class="eg-ring"><div style="position:relative;width:210px;height:210px">'+egRing(nowPct,finPct)+
+    '<div style="position:absolute;inset:0;display:grid;place-items:center;text-align:center"><div><div class="out" style="font-size:44px;font-weight:800;color:#fff;line-height:1">'+Math.round(nowPct*100)+'<span style="font-size:20px">%</span></div>'+
+    '<div style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#7F95AD;margin-top:4px">funded today</div>'+
+    '<div style="font-size:11.5px;color:#7CB8FF;margin-top:6px">'+Math.round(finPct*100)+'% at full payoff</div></div></div></div></div>'+
+    '<div class="eg-stats"><div class="seg" style="color:#7F95AD">Your Freedom number</div><div class="out fx-big" style="color:#FBBF24;text-shadow:0 0 26px rgba(251,191,36,.35)">'+money(target)+'<span style="font-size:16px;color:#7F95AD;font-weight:600"> / mo</span></div>'+
+    '<div class="eg-kpis">'+
+      '<div><div class="eg-k">Passive income today</div><div class="out '+(now.total>=0?'fx-pos':'fx-neg')+'" style="font-size:20px;font-weight:800">'+money(now.total)+'</div></div>'+
+      '<div><div class="eg-k">Gap to goal</div><div class="out" style="font-size:20px;font-weight:800;color:#E6EDF6">'+money(gap)+'</div></div>'+
+      '<div><div class="eg-k">At full payoff</div><div class="out" style="font-size:20px;font-weight:800;color:#7CB8FF">'+money(fin.total)+'</div></div>'+
+      '<div><div class="eg-k">Freedom year</div><div class="out" style="font-size:20px;font-weight:800;color:#FBBF24">'+(tl.fy?(tl.fy<=y0?'Now':tl.fy):'Not yet')+'</div>'+(tl.fy?'':'<div style="font-size:10.5px;color:#7F95AD;margin-top:2px">'+money(Math.max(0,target-fin.total))+'/mo short at payoff</div>')+'</div></div>'+
+    '<div style="margin-top:16px"><div class="eg-k" style="margin-bottom:6px">Income mix at full payoff</div><div class="eg-stack">'+
+      (target>0?seg.map(function(k){return '<div title="'+k+'" style="width:'+Math.min(100,fin.parts[k]/Math.max(target,fin.total)*100)+'%;background:'+egColor(k)+';box-shadow:0 0 10px '+egColor(k)+'88"></div>';}).join(''):'')+'</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:11.5px;color:#9FB2C8">'+(seg.length?seg.map(function(k){return '<span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:'+egColor(k)+';margin-right:5px"></i>'+k+' '+money(fin.parts[k])+'</span>';}).join(''):'<span>Add rental properties or income sources below to start filling the bar.</span>')+'</div></div>'+
+    '</div></div>';
+  /* timeline */
+  h+='<div class="card" style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px"><div class="seg">Path to freedom</div><span style="font-size:11.5px;color:'+C.faint+'">Monthly passive income by year · steps up as loans pay off and income sources start</span></div><div style="margin-top:10px">'+tl.svg+'</div></div>';
+  h+='<div class="eg-grid">';
+  /* target + builder */
+  var expTot=eg.expenses.reduce(function(s,e){return s+num(e.amt);},0),suggest=expTot*(1+num(eg.buffer)/100);
+  h+='<div class="card"><div class="seg">Your Freedom number</div>'+
+    '<div class="row"><span class="lab">Target monthly income</span><div class="fieldwrap" style="width:150px"><span class="aff" style="left:9px">$</span><input class="in" id="egTarget" type="number" value="'+esc(eg.target)+'" style="padding-left:20px"></div></div>'+
+    '<div class="row"><span class="lab">Retire-by year (optional)</span><div class="fieldwrap" style="width:150px"><input class="in" id="egRetire" type="number" placeholder="e.g. 2035" value="'+esc(eg.retireYear)+'"></div></div>'+
+    '<div style="border-top:1px dashed '+C.line+';margin:12px 0 4px;padding-top:12px"><div class="seg">Build your number</div><p style="font-size:12px;color:'+C.muted+';margin:6px 0 4px;line-height:1.5">List your monthly living costs in retirement, add a buffer for taxes and surprises, and use the result as your target.</p>'+
+    eg.expenses.map(function(e,i){return '<div style="display:flex;gap:8px;margin-top:6px;align-items:center"><input class="in text" data-egx="name" data-i="'+i+'" value="'+esc(e.name)+'" style="flex:1;min-width:0"><div class="fieldwrap" style="width:120px"><span class="aff" style="left:9px">$</span><input class="in" data-egx="amt" data-i="'+i+'" type="number" value="'+esc(e.amt)+'" style="padding-left:20px"></div><button class="chip" data-egxdel="'+i+'" style="color:'+C.bad+'">×</button></div>';}).join('')+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px;flex-wrap:wrap"><button class="chip" id="egExpAdd">+ Add expense</button>'+
+    '<span style="font-size:12.5px;color:'+C.muted+'">Buffer <input class="in" id="egBuffer" type="number" value="'+esc(eg.buffer)+'" style="width:58px;display:inline-block;padding:5px 7px"> %</span></div>'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding:10px 12px;border-radius:10px;background:'+C.inputBg+';border:1px solid '+C.line+'"><span style="font-size:13px;color:'+C.muted+'">Expenses <b class="out" id="egExpTot" style="color:'+C.ink+'">'+money(expTot)+'</b> → suggested <b class="out" id="egSuggest" style="color:#FBBF24">'+money(suggest)+'</b></span><button class="chip" id="egUse">Use as my target</button></div></div></div>';
+  /* rentals */
+  var props=egProps();
+  h+='<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div class="seg">Rental income (paid off)</div>'+
+    '<span style="font-size:12px;color:'+C.muted+'">Repair reserve <input class="in" id="egReserve" type="number" value="'+esc(eg.reserve)+'" style="width:54px;display:inline-block;padding:5px 7px"> % of rent</span></div>'+
+    '<p style="font-size:12px;color:'+C.muted+';margin:6px 0 8px;line-height:1.5">Tick the Portfolio properties that count toward your Freedom number. Once a loan is paid off, the mortgage payment turns into income.</p>';
+  if(!props.length)h+='<div style="font-size:13px;color:'+C.muted+';padding:10px 0">No properties yet — add them in the <b>Portfolio</b> tab and they will appear here.</div>';
+  else h+=props.map(function(x){var p=x.p,e=egPropCalc(p),on=endGame.incl[p.id]!==false;
+    return '<div class="eg-prop'+(on?'':' off')+'"><label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;min-width:0;flex:1"><input type="checkbox" data-egp="'+p.id+'"'+(on?' checked':'')+' style="margin-top:3px;accent-color:#34F5B5">'+
+      '<span style="min-width:0"><span style="font-weight:600;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(p.name)+'</span><span style="font-size:11.5px;color:'+C.faint+'">'+esc(x.pf.name)+' · paid off '+(e.payYear<=y0?'now':e.payYear)+'</span></span></label>'+
+      '<div style="text-align:right;flex:none"><div class="out" style="font-weight:700;color:'+EG_RENT_COL+'">'+money(e.paidOff)+'<span style="font-size:11px;color:'+C.faint+';font-weight:500">/mo</span></div><div style="font-size:11px;color:'+C.faint+'">today '+money(e.today)+'</div></div></div>';}).join('');
+  h+='</div>';
+  /* other income */
+  h+='<div class="card eg-wide"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div class="seg">Other income sources</div><button class="chip" id="egIncAdd">+ Add income</button></div>'+
+    '<p style="font-size:12px;color:'+C.muted+';margin:6px 0 4px;line-height:1.5">Pension, 401k / IRA withdrawals, Social Security, dividends, business or other income. Leave "Starts" blank if it is paying now. Rule of thumb for 401k / brokerage: balance × 4% ÷ 12 per month.</p>';
+  if(!eg.incomes.length)h+='<div style="font-size:13px;color:'+C.muted+';padding:8px 0">No other income sources yet.</div>';
+  h+=eg.incomes.map(function(inc,i){return '<div class="eg-inc"><span class="eg-dot" style="background:'+egColor(inc.type)+'"></span>'+
+    '<input class="in text" data-egi="name" data-i="'+i+'" value="'+esc(inc.name)+'" placeholder="Description" style="flex:2;min-width:140px">'+
+    '<select class="in text" data-egi="type" data-i="'+i+'" style="flex:1;min-width:130px">'+EG_TYPES.map(function(t){return '<option'+(t[0]===inc.type?' selected':'')+'>'+t[0]+'</option>';}).join('')+'</select>'+
+    '<div class="fieldwrap" style="width:130px"><span class="aff" style="left:9px">$</span><input class="in" data-egi="amt" data-i="'+i+'" type="number" value="'+esc(inc.amt)+'" placeholder="per month" style="padding-left:20px"></div>'+
+    '<input class="in" data-egi="start" data-i="'+i+'" type="number" value="'+esc(inc.start)+'" placeholder="Starts (yr)" style="width:110px">'+
+    '<button class="chip" data-egidel="'+i+'" style="color:'+C.bad+'">×</button></div>';}).join('');
+  h+='</div></div>';
+  h+='<p style="font-size:11.5px;color:'+C.faint+';margin:14px 0 0;line-height:1.55">Rental income uses each property\'s rent, vacancy, taxes, insurance, HOA, management and utilities from the Portfolio tab, minus the repair reserve. Paid-off year comes from the loan start (or purchase) date plus the loan term — extra principal payments are not modeled. Planning aid only, not financial advice.</p>';
+  return h;
+}
+function attachEndGame(){
+  var eg=endGame,rer=function(){saveEndGame();var y=window.scrollY;renderApp();window.scrollTo(0,y);};
+  var bind=function(id,key){var el=document.getElementById(id);if(el)el.onchange=function(){eg[key]=el.value;rer();};};
+  bind("egTarget","target");bind("egRetire","retireYear");bind("egReserve","reserve");bind("egBuffer","buffer");
+  var liveExp=function(){var t=eg.expenses.reduce(function(s,e){return s+num(e.amt);},0),bf=document.getElementById("egBuffer"),b=bf?num(bf.value):num(eg.buffer);
+    var a=document.getElementById("egExpTot"),s=document.getElementById("egSuggest");if(a)a.textContent=money(t);if(s)s.textContent=money(t*(1+b/100));};
+  document.querySelectorAll("[data-egx]").forEach(function(el){el.oninput=function(){eg.expenses[+el.getAttribute("data-i")][el.getAttribute("data-egx")]=el.value;saveEndGame();liveExp();};});
+  document.querySelectorAll("[data-egxdel]").forEach(function(b){b.onclick=function(){eg.expenses.splice(+b.getAttribute("data-egxdel"),1);rer();};});
+  var ea=document.getElementById("egExpAdd");if(ea)ea.onclick=function(){eg.expenses.push({name:"",amt:0});rer();};
+  var use=document.getElementById("egUse");if(use)use.onclick=function(){var t=eg.expenses.reduce(function(s,e){return s+num(e.amt);},0);eg.target=Math.round(t*(1+num(eg.buffer)/100));rer();};
+  document.querySelectorAll("[data-egp]").forEach(function(cb){cb.onchange=function(){eg.incl[cb.getAttribute("data-egp")]=cb.checked;rer();};});
+  var ia=document.getElementById("egIncAdd");if(ia)ia.onclick=function(){eg.incomes.push({name:"",type:"Pension",amt:"",start:""});rer();};
+  document.querySelectorAll("[data-egi]").forEach(function(el){el.onchange=function(){eg.incomes[+el.getAttribute("data-i")][el.getAttribute("data-egi")]=el.value;rer();};});
+  document.querySelectorAll("[data-egidel]").forEach(function(b){b.onclick=function(){eg.incomes.splice(+b.getAttribute("data-egidel"),1);rer();};});
+}
+loadEndGame();
+
+/* backup: include End Game + comparison selection */
+var _egExport=exportAllJSON;
+exportAllJSON=function(){var data={version:1,exported:new Date().toISOString(),deals:deals,portfolios:portfolios,pfActive:pfActive,dealLog:dealLog,comps:comps,settings:DEFAULTS,regions:regions,alist:alist,contractors:contractors,conRegion:conRegion,margin:marginData,repsLog:repsLog,repsYear:repsYear,endGame:endGame,cmpSel:cmpSel};dlFile("re-platform-backup.json",JSON.stringify(data,null,2),"application/json");};
+
+FX_ICONS.tabC='<path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/>';
+FX_ICONS.tabE='<path d="M4 21V4"/><path d="M4 4h12l-2 4 2 4H4"/>';
+
+/* ================= v1.4: Team priority order (drag or arrows) ================= */
+(function(){var add={"First call":"Gọi đầu tiên","Backup":"Dự phòng","Drag to reorder":"Kéo để sắp xếp","Move up":"Lên","Move down":"Xuống"};for(var k in add)TR[k]=add[k];})();
+function tmGroup(kind,c){return kind==="a"?(c.profession||""):((c.region||"")+"|"+(c.trade||""));}
+function tmArr(kind){return kind==="a"?alist:contractors;}
+function tmSave(kind){if(kind==="a")saveAlist();else saveContractors();}
+function tmRankInfo(kind,i){var arr=tmArr(kind),g=tmGroup(kind,arr[i]),rank=0,total=0;
+  arr.forEach(function(c,j){if(tmGroup(kind,c)===g){total++;if(j<=i)rank++;}});return{rank:rank,total:total,g:g};}
+function tmWrap(kind,html,i){
+  var ri=tmRankInfo(kind,i),r=ri.rank,top=r===1;
+  html=html.replace(/padding:10px 0;border-top:1px solid [^";]*/,'flex:1;min-width:0');
+  var badge='<div class="tm-rank'+(top?' tm-first':'')+'">'+r+'</div><div class="tm-lab">'+(top?'First call':'Backup')+'</div>';
+  var rail='<div class="tm-rail"><div class="tm-handle" title="Drag to reorder" aria-label="Drag to reorder">⋮⋮</div>'+badge+
+    '<div class="tm-arrows"><button class="chip tm-mv" data-tmk="'+kind+'" data-ti="'+i+'" data-dir="-1" title="Move up"'+(r===1?' disabled':'')+'>▲</button>'+
+    '<button class="chip tm-mv" data-tmk="'+kind+'" data-ti="'+i+'" data-dir="1" title="Move down"'+(r===ri.total?' disabled':'')+'>▼</button></div></div>';
+  return '<div class="tm-row'+(top?' tm-row-first':'')+'" data-trow="'+kind+'" data-ti="'+i+'" data-tg="'+esc(ri.g)+'">'+rail+html+'</div>';
+}
+var _tmA=alistCard;alistCard=function(c,i){return tmWrap("a",_tmA(c,i),i);};
+var _tmC=contractorCard;contractorCard=function(c,i){return tmWrap("c",_tmC(c,i),i);};
+function tmMoveTo(kind,from,to){ /* dropped item takes the target's spot */
+  var arr=tmArr(kind);if(from===to)return;var it=arr.splice(from,1)[0];arr.splice(to,0,it);
+  tmSave(kind);var y=window.scrollY;renderApp();window.scrollTo(0,y);}
+function tmStep(kind,i,dir){var arr=tmArr(kind),g=tmGroup(kind,arr[i]),j=i+dir;
+  while(j>=0&&j<arr.length&&tmGroup(kind,arr[j])!==g)j+=dir;if(j<0||j>=arr.length)return;
+  var tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;tmSave(kind);var y=window.scrollY;renderApp();window.scrollTo(0,y);}
+function tmAttach(){
+  document.querySelectorAll(".tm-mv").forEach(function(b){b.onclick=function(){tmStep(b.getAttribute("data-tmk"),+b.getAttribute("data-ti"),+b.getAttribute("data-dir"));};});
+  var drag=null;
+  document.querySelectorAll(".tm-row").forEach(function(row){
+    var h=row.querySelector(".tm-handle");
+    h.onmousedown=function(){row.setAttribute("draggable","true");};
+    row.addEventListener("mouseup",function(){row.removeAttribute("draggable");});
+    row.addEventListener("dragstart",function(e){drag={k:row.getAttribute("data-trow"),i:+row.getAttribute("data-ti"),g:row.getAttribute("data-tg")};row.classList.add("tm-dragging");try{e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","x");}catch(x){}});
+    row.addEventListener("dragend",function(){row.classList.remove("tm-dragging");row.removeAttribute("draggable");document.querySelectorAll(".tm-over").forEach(function(r){r.classList.remove("tm-over");});drag=null;});
+    row.addEventListener("dragover",function(e){if(!drag||drag.k!==row.getAttribute("data-trow")||drag.g!==row.getAttribute("data-tg"))return;e.preventDefault();row.classList.add("tm-over");});
+    row.addEventListener("dragleave",function(){row.classList.remove("tm-over");});
+    row.addEventListener("drop",function(e){if(!drag)return;e.preventDefault();var to=+row.getAttribute("data-ti");if(drag.g!==row.getAttribute("data-tg"))return;tmMoveTo(drag.k,drag.i,to);});
+  });
+}
+var _tmAttA=attachAlist;attachAlist=function(){_tmAttA();tmAttach();};
+var _tmAttC=attachContractors;attachContractors=function(){_tmAttC();tmAttach();};
 
 document.addEventListener('DOMContentLoaded',function(){
   loadPlatform();loadTeam();loadReps();load();initTheme();renderApp();applyLang();setupLangObserver();

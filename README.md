@@ -7,15 +7,18 @@ Built to publish to a public URL (GitHub Pages) and share with partners.
 ## Tabs
 
 - **Analyze** — underwrite a new acquisition (up to 6 units + ADU), grade it 1-10, and see the deal solver and break-even gauge.
+- **Deal Comparison Analysis** — pick which Analyze deals to compare; they are ranked best to worst (Deal score = 60% grade + 40% cash-flow score, ties broken by cash flow) with a leaderboard, ranked cash-flow chart, and detailed side-by-side table. Other sort options: grade, cash flow, cash-on-cash, cap rate, cash to close.
+- **Market Rent Comps** — neighborhood rent-comp tracker to verify assumptions.
+- **Margin** — margin deal calculator (wholesale / fix & flip / buy & hold).
+- **REPS Log** — Real Estate Professional Status hours tracker.
+- **Team** — A-List contacts and region-based contractors, each list in call-priority order (drag or ▲ ▼ to reorder).
 - **Portfolio** — track owned properties: purchase data, financing, rents, PITI (editable to match your mortgage statement), NOI, cash flow, cap rate, CoC, DSCR, equity, and loan paydown, with portfolio-level KPIs and multiple portfolios.
-- **Deal Log** — history of screened deals with verdicts; push whatever is open in Analyze straight in.
-- **Compare** — side-by-side comparison of saved deals.
-- **Comps** — neighborhood rent-comp tracker to verify assumptions.
+- **Freedom** — set the monthly passive income needed to retire (or build it from expenses + buffer), count paid-off Portfolio rentals plus pension, 401k/IRA, Social Security, dividends and other income, and track progress with a funded-% ring and a year-by-year "path to freedom" chart.
 - **Settings** — editable underwriting defaults, plus JSON backup/restore and CSV export.
 
 ## Data & privacy
 
-All data is stored **locally in your browser** (localStorage). Publishing the site shares the *tool*, not your data — each visitor sees an empty app. To move your data between devices or hand a partner a copy, use **Settings → Backup all (JSON)** and **Restore**. Per-tab **Export CSV** is available on the Portfolio, Deal Log, and Comps tabs.
+All data is stored **locally in your browser** (localStorage). Publishing the site shares the *tool*, not your data — each visitor sees an empty app. To move your data between devices or hand a partner a copy, use **Settings → Backup all (JSON)** and **Restore**. Per-tab **Export CSV** is available on the Portfolio and Market Rent Comps tabs.
 
 ## Underwriting defaults (editable in Settings)
 
@@ -53,6 +56,15 @@ No build step, no dependencies, works offline once loaded.
 Screening aid only. Not financial, tax, or investment advice. Verify all figures independently.
 
 ## Changelog
+
+### v1.4 — Sep 2026
+- **Fintech Dark** visual theme (now the default look; the sun/moon button switches to Light and is remembered per browser): glowing navy background, glass cards, gradient active tabs, and an icon on every tab.
+- **Analyze**: redesigned cash-flow hero with an animated **grade gauge**, a **projected 10-year net gain** chart (equity gain from loan paydown + assumed appreciation + cumulative cash flow, minus cash to close), and glowing gradient bars in the grade breakdown.
+- New **Freedom** tab: retirement income target (manual or built from expenses + buffer), paid-off rental income from selected Portfolio properties (with repair reserve), custom income sources with start years, funded-% progress ring, income-mix bar, and path-to-freedom timeline with freedom year.
+- **Compare → Deal Comparison Analysis**: choose which deals to compare, ranked leaderboard (top pick highlighted), ranked cash-flow chart, sortable, mobile-friendly.
+- Removed the **Deal Log** tab (existing log data is kept in backups). Renamed **REPS → REPS Log** and **Comps → Market Rent Comps**. New tab order (Analyze, Deal Comparison Analysis, Market Rent Comps, Margin, REPS Log, Team, Portfolio, Freedom); Settings, language and theme moved to the top-right.
+- **Team priority order**: A-List and contractor contacts are ranked within each profession/trade (#1 = First call, then backups). Drag the ⋮⋮ handle on desktop or use the ▲ ▼ buttons (desktop and mobile) to reorder.
+- Backups now include Freedom data. Visual changes elsewhere only — underwriting math is unchanged.
 
 ### v1.3 — Jul–Sep 2026
 - **Portfolio property editor** upgrades: per-unit rent rows, owner-paid **utilities** block (add/remove lines), itemized **PITI** fields with live summary, and a **deal summary** panel with revenue-vs-expense chart.
