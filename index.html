@@ -67,7 +67,7 @@ var GREEN_H="#5FC98C",AMBER_H="#E3B455",RED_H="#F08A7E";
 
 var DEFAULT_DEAL={address:"404 E El Monte St, San Gabriel CA",price:1060000,dpPct:50,rate:7.37,termYears:30,
   closingPct:2.5,rehab:10000,aduBuildCost:0,unitCount:1,units:[3400,0,0,0,0,0],aduOn:false,aduRent:0,
-  otherIncome:0,vacPct:5,taxPct:1.2,insurance:1500,hoa:0,pmPct:0,maintPct:1,utilities:0,apprPct:3,schoolRating:7,homeSqft:1180,lotSqft:8250};
+  otherIncome:0,vacPct:5,taxPct:1.2,insurance:1500,hoa:0,pmPct:0,maintPct:1,utilities:0,apprPct:3,schoolRating:7,homeSqft:1180,lotSqft:8250,unitBeds:[0,0,0,0,0,0],unitBaths:[0,0,0,0,0,0]};
 
 function num(v){var n=parseFloat(v);return isNaN(n)?0:n;}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
@@ -75,7 +75,7 @@ function money(n){return (n<0?"-$":"$")+Math.abs(Math.round(n)).toLocaleString()
 function pct(n){return n.toFixed(1)+"%";}
 function mult(n){return n.toFixed(2)+"x";}
 function uid(){return Math.random().toString(36).slice(2,9);}
-function normalize(d){var o=Object.assign({},DEFAULT_DEAL,d||{});var u=(d&&d.units)?d.units.slice():DEFAULT_DEAL.units.slice();while(u.length<6)u.push(0);o.units=u.slice(0,6);return o;}
+function normalize(d){var o=Object.assign({},DEFAULT_DEAL,d||{});var u=(d&&d.units)?d.units.slice():DEFAULT_DEAL.units.slice();while(u.length<6)u.push(0);o.units=u.slice(0,6);var pad=function(a){a=(a&&a.slice)?a.slice():[];while(a.length<6)a.push(0);return a.slice(0,6);};o.unitBeds=pad(d&&d.unitBeds);o.unitBaths=pad(d&&d.unitBaths);return o;}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 
 function gradeMeta(g){
@@ -123,7 +123,7 @@ function compute(d){
     {key:"Debt safety (DSCR)",w:.20,s:scoreDSCR(dscr),detail:mult(dscr)},
     {key:"School quality",w:.20,s:clamp(school,0,10),detail:school.toFixed(0)+"/10"},
     {key:"Price per sq ft (home)",w:.15,s:homeSqft>0?clamp((1050-ppsf)/60,0,10):0,detail:homeSqft>0?"$"+Math.round(ppsf)+"/sf":"n/a"},
-    {key:"Lot sq ft vs price",w:.10,s:sfLotPerK>0?clamp((sfLotPerK-1.5)/0.55,0,10):0,detail:sfLotPerK>0?sfLotPerK.toFixed(1)+" sf/$k":"n/a"},
+    {key:"Cap rate",w:.10,s:clamp(cap/6*10,0,10),detail:pct(cap)},
     {key:"Appreciation (assumed)",w:.10,s:clamp(appr/5*10,0,10),detail:pct(appr)}
   ];
   var grade=0;for(var f=0;f<factors.length;f++)grade+=factors[f].w*factors[f].s;
@@ -228,7 +228,7 @@ function renderApp(){
       '<select id="dealSelect" style="font-size:13px;padding:8px 10px;border-radius:7px;border:1px solid '+C.line+';background:'+C.panel+';color:'+C.ink+';max-width:200px">'+
       deals.map(function(x){return '<option value="'+x.id+'"'+(x.id===currentId?' selected':'')+'>'+esc(x.name)+'</option>';}).join('')+'</select>'+
       '<button class="chip" id="btnNew">+ New</button>'+
-      '<button class="chip" id="btnDel"'+(deals.length<=1?' style="opacity:.4"':'')+'>Delete</button></div>';
+      '<button class="chip" id="btnDel"'+(deals.length<=1?' style="opacity:.4"':'')+'>Delete</button>'+'<button class="chip" id="btnPrint">Print</button><button class="chip" id="btnMobile">Mobile view</button></div>';
   }
   head+='</div>';
   head+='<div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center">'+
@@ -249,7 +249,7 @@ function renderApp(){
   if(view==="reps"){app.innerHTML=head+repsHTML();attachCommon();attachReps();return;}
   if(view==="compare"){app.innerHTML=head+compareHTML();attachCommon();attachCompare();return;}
 
-  var units="";for(var i=0;i<deal.unitCount;i++)units+=field("Unit "+(i+1)+" rent","unit"+i,{prefix:"$"});
+  var units="";for(var i=0;i<deal.unitCount;i++)units+=unitRow(i);
   var left='<div class="col">'+
     '<div class="card"><div class="seg">Property</div>'+
       '<input class="in text" id="nameInput" data-role="name" style="margin-top:8px;font-family:var(--sans);font-size:14px" value="'+esc(currentName())+'" placeholder="Deal name"/>'+
@@ -804,14 +804,14 @@ function attachComps(){bindEdit(comps,"co",saveComps);var a=document.getElementB
 
 /* ===== i18n language toggle ===== */
 var lang=(function(){try{return store.get('rp_lang')||'en';}catch(e){return 'en';}})();
-var TR={"Monthly cash flow": "Dòng tiền hàng tháng", "Grade": "Điểm xếp hạng", "Grade breakdown": "Chi tiết điểm xếp hạng", "Return metrics": "Chỉ số lợi nhuận", "Break-even rent gauge": "Mức tiền thuê hòa vốn", "Monthly summary": "Tóm tắt hàng tháng", "Deal solver": "Công cụ giải bài toán", "Unit ": "Tiền thuê căn ", "Property": "Bất động sản", "Square feet (home)": "Diện tích nhà (sqft)", "Square feet (lot)": "Diện tích lô đất (sqft)", "Purchase & financing": "Mua & Tài chính", "Purchase price": "Giá mua", "Down payment": "Tiền trả trước", "Interest rate": "Lãi suất", "Loan term": "Thời hạn vay", "Closing costs": "Chi phí đóng giao dịch", "Rehab / repair budget": "Ngân sách sửa chữa", "Loan amount": "Số tiền vay", "Monthly P&I": "Gốc & lãi hàng tháng", "Total cash to close": "Tổng tiền mặt cần để đóng giao dịch", "Income - monthly rent by unit": "Thu nhập - tiền thuê hàng tháng theo căn", "ADU rent": "Tiền thuê ADU", "ADU build cost (capital)": "Chi phí xây ADU (vốn)", "Other income (parking, laundry)": "Thu nhập khác (đỗ xe, giặt ủi)", "Vacancy allowance": "Tỷ lệ trống", "Gross monthly rent": "Tổng tiền thuê hàng tháng", "Effective gross income / yr": "Tổng thu nhập thực tế / năm", "Occupied units": "Số căn có người thuê", "Operating expenses - annual": "Chi phí vận hành - hàng năm", "Property tax rate": "Thuế bất động sản", "Insurance": "Bảo hiểm", "HOA": "Phí HOA", "Property mgmt (0 = self-managed)": "Phí quản lý (0 = tự quản lý)", "Maintenance reserve": "Quỹ bảo trì", "Owner-paid utilities": "Tiện ích do chủ trả", "Property taxes": "Thuế bất động sản", "Total operating expenses (annual)": "Tổng chi phí vận hành (hàng năm)", "Total operating expenses (monthly)": "Tổng chi phí vận hành (hàng tháng)", "Neighborhood & scoring": "Khu vực & điểm xếp hạng", "School rating (1-10)": "Điểm trường học (1-10)", "Est. annual appreciation": "Tăng giá ước tính mỗi năm", "Analyze": "Phân tích", "Portfolio": "Danh mục", "Deal Log": "Nhật ký giao dịch", "Compare": "So sánh", "Comps": "Giá thuê", "Settings": "Cài đặt", "Investment Platform": "Nền tảng Đầu tư", "Real Estate Investment Platform": "Nền tảng Đầu tư Bất động sản", "Deal screening + portfolio tracking for SoCal rentals": "Sàng lọc giao dịch + theo dõi danh mục BĐS cho thuê Nam California", "Overview": "Tổng quan", "Edit properties": "Chỉnh sửa BĐS", "+ Portfolio": "+ Danh mục", "Rename": "Đổi tên", "Delete": "Xóa", "+ Add": "+ Thêm", "Delete property": "Xóa BĐS", "+ Add property": "+ Thêm BĐS", "Export CSV": "Xuất CSV", "Remove": "Xóa", "+ Deal": "+ Giao dịch", "Log current analyzer deal": "Ghi giao dịch đang phân tích", "+ Comp": "+ Giá thuê", "+ Tenant": "+ Người thuê", "+ Document": "+ Tài liệu", "Add a second deal to compare.": "Thêm giao dịch thứ hai để so sánh.", "Annual cash flow": "Dòng tiền hàng năm", "Portfolio equity": "Vốn sở hữu danh mục", "Total invested": "Tổng vốn đầu tư", "Blended cap": "Cap tổng hợp", "Blended CoC": "CoC tổng hợp", "Total P&I / mo": "Tổng G&L / th", "Properties": "Số BĐS", "Monthly cash flow by property": "Dòng tiền hàng tháng theo BĐS", "Revenue vs expenses (monthly)": "Doanh thu và chi phí (hàng tháng)", "Loan life & progress": "Vòng đời khoản vay & tiến độ", "Rent": "Tiền thuê", "Other op ex": "Chi phí khác", "No properties yet.": "Chưa có BĐS.", "No properties yet - add them in Edit properties.": "Chưa có BĐS - thêm ở tab Chỉnh sửa BĐS.", "Payoff": "Tất toán", "Pmts made": "Đã trả", "Left": "Còn lại", "% paid": "% đã trả", "Per-property results": "Kết quả theo BĐS", "CF/mo": "Dòng tiền/th", "PITI/mo": "PITI/th", "Equity": "Vốn SH", "Owned properties": "BĐS đang sở hữu", "Property & specs": "BĐS & thông số", "Income": "Thu nhập", "Operating expenses": "Chi phí vận hành", "Results": "Kết quả", "Name": "Tên", "Address": "Địa chỉ", "Type": "Loại", "ADU status": "Trạng thái ADU", "Beds": "Phòng ngủ", "Baths": "Phòng tắm", "Home sq ft": "DT nhà (sqft)", "Lot sq ft": "DT lô đất (sqft)", "Year built": "Năm xây", "Units": "Số căn", "Est. value": "Giá trị ước tính", "Purchased": "Ngày mua", "Down %": "Trả trước %", "Rate %": "Lãi suất %", "Term (yrs)": "Thời hạn (năm)", "Loan start": "Bắt đầu vay", "Loan balance override": "Ghi đè dư nợ", "Gross rent / mo": "Tiền thuê gộp / th", "Vacancy %": "Tỷ lệ trống %", "Property tax %": "Thuế BĐS %", "Insurance / yr": "Bảo hiểm / năm", "HOA / mo": "HOA / th", "Mgmt %": "Quản lý %", "Maintenance %": "Bảo trì %", "Utilities / mo": "Tiện ích / th", "PITI override / mo": "Ghi đè PITI / th", "Monthly PITI": "PITI hàng tháng", "NOI / yr": "NOI / năm", "Cap rate": "Tỷ suất vốn hóa","Cash flow": "Dòng tiền", "Debt safety (DSCR)": "An toàn nợ (DSCR)", "Price per sq ft (home)": "Giá mỗi sqft (nhà)", "Home sq ft vs price": "DT nhà so với giá", "Lot sq ft vs price": "DT lô so với giá", "+ Property": "+ BĐS", "Added properties:": "BĐS đã thêm:", "REPS": "REPS", "REPS Hours Log": "Nhật ký giờ REPS", "REPS hours": "Giờ REPS", "Tax year": "Năm thuế", "Hours by category": "Giờ theo hạng mục", "Activity": "Hoạt động", "Time": "Thời gian", "Portfolio-wide": "Toàn danh mục", "+ Add entry": "+ Thêm mục", "Start stopwatch": "Bắt đầu bấm giờ", "Stop stopwatch": "Dừng bấm giờ", "Rental Operations": "Vận hành cho thuê", "Acquisition": "Thu mua", "Leasing & Tenant Placement": "Cho thuê & Tìm khách", "Development": "Phát triển", "Construction": "Xây dựng", "Rental income / mo": "Thu nhập thuê / th", "Operating expenses / mo": "Chi phí vận hành / th", "Dark": "Tối", "Light": "Sáng", "Blended cap rate": "Cap tổng hợp", "Blended cash-on-cash": "CoC tổng hợp", "Total monthly P&I": "Tổng G&L hàng tháng", "Cash flow / mo": "Dòng tiền / th", "PITI / mo": "PITI / th", "Payoff date": "Ngày tất toán", "Payments made": "Kỳ đã trả", "Payments left": "Kỳ còn lại", "% paid off": "% đã trả", "Home square feet": "Diện tích nhà (sqft)", "Lot square feet": "Diện tích lô (sqft)", "Estimated market value": "Giá trị thị trường ước tính", "Purchase date": "Ngày mua", "Down payment %": "Trả trước %", "Interest rate %": "Lãi suất %", "Loan term (years)": "Thời hạn vay (năm)", "Loan start date": "Ngày bắt đầu vay", "Current loan balance (override)": "Dư nợ hiện tại (nhập tay)", "Gross rent / month": "Tiền thuê gộp / th", "Insurance / year": "Bảo hiểm / năm", "HOA / month": "HOA / th", "Management %": "Quản lý %", "Utilities / month": "Tiện ích / th", "Monthly PITI (editable)": "PITI hàng tháng (nhập tay)", "Margin": "Biên LN", "Margin Deal Calculator": "Máy tính biên giao dịch", "Deal inputs": "Số liệu giao dịch", "After-repair value (ARV)": "Giá trị sau sửa (ARV)", "Rehab / repairs": "Sửa chữa", "Holding costs": "Chi phí nắm giữ", "Selling costs": "Chi phí bán", "Wholesale fee (optional)": "Phí bán sỉ (tùy chọn)", "Deal margin": "Biên lợi nhuận", "All-in cost": "Tổng chi phí", "Projected profit": "Lợi nhuận dự kiến", "Max offer (70% rule)": "Giá tối đa (quy tắc 70%)", "Est. wholesale fee": "Phí bán sỉ ước tính", "Pull from current deal": "Lấy từ giao dịch hiện tại", "Log to Deal Log": "Ghi vào Nhật ký", "Wholesale": "Bán sỉ", "Fix & Flip": "Sửa & bán", "Buy & Hold / BRRR": "Mua & giữ / BRRR", "Pass": "Bỏ qua", "WHOLESALE": "BÁN SỈ", "FIX & FLIP": "SỬA & BÁN", "BUY & HOLD / BRRR": "MUA & GIỮ / BRRR", "PASS — TOO THIN": "BỎ QUA — LỢI NHUẬN MỎNG", "Team": "Đội ngũ", "A-List Team": "Đội ngũ A-List", "Contractors": "Nhà thầu", "A-List team — all regions": "Đội ngũ A-List — mọi khu vực", "Contractors — by region": "Nhà thầu — theo khu vực", "Region coverage": "Khu vực phụ trách", "All regions": "Tất cả khu vực", "Profession": "Nghề", "Trade": "Nghề", "+ Region": "+ Khu vực", "Delete region": "Xóa khu vực", "+ Add": "+ Thêm", "None yet.": "Chưa có.", "No contacts yet.": "Chưa có liên hệ.", "Realtors & Wholesalers": "Môi giới & Bán sỉ", "General Contractors": "Nhà thầu chính", "Lender Team": "Nhóm cho vay", "Property Managers": "Quản lý BĐS", "Architects": "Kiến trúc sư", "Other": "Khác", "Realtor / Wholesaler": "Môi giới / Bán sỉ", "General Contractor": "Nhà thầu chính", "Lender": "Cho vay", "Property Manager": "Quản lý BĐS", "Architect": "Kiến trúc sư", "Plumber": "Thợ ống nước", "Electrician": "Thợ điện", "Handyman": "Thợ sửa chữa", "Flooring": "Sàn", "Cabinet": "Tủ bếp", "Roofing": "Mái", "Windows": "Cửa sổ", "Painter": "Thợ sơn",  "Cash-on-cash": "Lợi nhuận tiền mặt", "Current equity": "Vốn sở hữu hiện tại", "Loan paid off": "Khoản vay đã trả", "Tenants": "Người thuê", "Phone": "Điện thoại", "Unit": "Căn", "Lease start": "Bắt đầu thuê", "Lease end": "Kết thúc thuê", "Rent/mo": "Thuê/th", "Deposit": "Đặt cọc", "Status": "Trạng thái", "Notes": "Ghi chú", "No tenants yet.": "Chưa có người thuê.", "Documents": "Tài liệu", "Category": "Danh mục", "Title": "Tiêu đề", "Cloud URL": "Đường dẫn đám mây", "Local file": "Tệp cục bộ", "Date": "Ngày", "Open": "Mở", "No documents yet.": "Chưa có tài liệu.", "Deal log": "Nhật ký giao dịch", "Address ": "Địa chỉ ", "Ask $": "Giá chào $", "Cap%": "Cap%", "CoC%": "CoC%", "Verdict": "Kết luận", "No deals logged yet.": "Chưa ghi giao dịch nào.", "Market rent comps": "Giá thuê tham chiếu thị trường", "City/Area": "Thành phố/Khu vực", "Bd": "PN", "Ba": "PT", "SqFt": "Sqft", "Source": "Nguồn", "No comps yet.": "Chưa có dữ liệu.", "Underwriting defaults": "Giá trị mặc định", "Backup & export": "Sao lưu & xuất", "About": "Giới thiệu", "Backup all (JSON)": "Sao lưu (JSON)", "Restore (JSON)": "Khôi phục (JSON)", "Down payment %": "Trả trước %", "Interest rate %": "Lãi suất %", "Loan term (yrs)": "Thời hạn vay (năm)", "Insurance $/yr": "Bảo hiểm $/năm", "Property mgmt %": "Quản lý %", "Closing costs %": "Chi phí đóng %", "No properties in this portfolio yet.": "Danh mục này chưa có BĐS.", "Cash-on-cash return": "Lợi nhuận trên tiền mặt", "Gross rent multiplier": "Hệ số tổng tiền thuê", "Break-even occupancy": "Tỷ lệ lấp đầy hòa vốn", "Break-even occ.": "Lấp đầy hòa vốn", "Effective monthly rent (after vacancy)": "Tiền thuê thực tế hàng tháng (sau trống)", "Monthly operating expenses": "Chi phí vận hành hàng tháng", "Cash flow per unit": "Dòng tiền mỗi căn", "Cash to close": "Tiền mặt để đóng", "Max price for break-even CF": "Giá tối đa để hòa vốn dòng tiền", "Rent needed for break-even CF": "Tiền thuê cần để hòa vốn", "School quality": "Chất lượng trường học", "School rating": "Điểm trường học", "Appreciation (assumed)": "Tăng giá (giả định)", "Net monthly cash flow": "Dòng tiền ròng hàng tháng", "Exceptional": "Xuất sắc", "Strong": "Mạnh", "Solid": "Vững", "Marginal": "Cận biên", "Weak": "Yếu", "Poor": "Kém", "PASS": "BỎ QUA", "THIN": "MỎNG", "MARGINAL": "CẬN BIÊN", "STRONG": "MẠNH"};
-function _tnode(root){if(lang!=='vi'||!root)return;var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),n,arr=[];while(n=w.nextNode())arr.push(n);arr.forEach(function(t){var s=t.nodeValue;if(!s)return;var k=s.trim();if(!k)return;if(TR[k]){t.nodeValue=s.replace(k,TR[k]);return;}if(/^Compare( - \d+)?$/.test(k)){t.nodeValue=s.replace('Compare','So sánh');}});root.querySelectorAll('[placeholder]').forEach(function(e){var k=e.getAttribute('placeholder');if(TR[k])e.setAttribute('placeholder',TR[k]);});root.querySelectorAll('[title]').forEach(function(e){var k=e.getAttribute('title');if(TR[k])e.setAttribute('title',TR[k]);});}
+var TR={"Monthly cash flow": "Dòng tiền hàng tháng", "Grade": "Điểm xếp hạng", "Grade breakdown": "Chi tiết điểm xếp hạng", "Return metrics": "Chỉ số lợi nhuận", "Break-even rent gauge": "Mức tiền thuê hòa vốn", "Monthly summary": "Tóm tắt hàng tháng", "Deal solver": "Công cụ giải bài toán", "Unit ": "Tiền thuê căn ", "Property": "Bất động sản", "Square feet (home)": "Diện tích nhà (sqft)", "Square feet (lot)": "Diện tích lô đất (sqft)", "Purchase & financing": "Mua & Tài chính", "Purchase price": "Giá mua", "Down payment": "Tiền trả trước", "Interest rate": "Lãi suất", "Loan term": "Thời hạn vay", "Closing costs": "Chi phí đóng giao dịch", "Rehab / repair budget": "Ngân sách sửa chữa", "Loan amount": "Số tiền vay", "Monthly P&I": "Gốc & lãi hàng tháng", "Total cash to close": "Tổng tiền mặt cần để đóng giao dịch", "Income - monthly rent by unit": "Thu nhập - tiền thuê hàng tháng theo căn", "ADU rent": "Tiền thuê ADU", "ADU build cost (capital)": "Chi phí xây ADU (vốn)", "Other income (parking, laundry)": "Thu nhập khác (đỗ xe, giặt ủi)", "Vacancy allowance": "Tỷ lệ trống", "Gross monthly rent": "Tổng tiền thuê hàng tháng", "Effective gross income / yr": "Tổng thu nhập thực tế / năm", "Occupied units": "Số căn có người thuê", "Operating expenses - annual": "Chi phí vận hành - hàng năm", "Property tax rate": "Thuế bất động sản", "Insurance": "Bảo hiểm", "HOA": "Phí HOA", "Property mgmt (0 = self-managed)": "Phí quản lý (0 = tự quản lý)", "Maintenance reserve": "Quỹ bảo trì", "Owner-paid utilities": "Tiện ích do chủ trả", "Property taxes": "Thuế bất động sản", "Total operating expenses (annual)": "Tổng chi phí vận hành (hàng năm)", "Total operating expenses (monthly)": "Tổng chi phí vận hành (hàng tháng)", "Neighborhood & scoring": "Khu vực & điểm xếp hạng", "School rating (1-10)": "Điểm trường học (1-10)", "Est. annual appreciation": "Tăng giá ước tính mỗi năm", "Analyze": "Phân tích", "Portfolio": "Danh mục", "Deal Log": "Nhật ký giao dịch", "Compare": "So sánh", "Comps": "Giá thuê", "Settings": "Cài đặt", "Investment Platform": "Nền tảng Đầu tư", "Real Estate Investment Platform": "Nền tảng Đầu tư Bất động sản", "Deal screening + portfolio tracking for SoCal rentals": "Sàng lọc giao dịch + theo dõi danh mục BĐS cho thuê Nam California", "Overview": "Tổng quan", "Edit properties": "Chỉnh sửa BĐS", "+ Portfolio": "+ Danh mục", "Rename": "Đổi tên", "Delete": "Xóa", "+ Add": "+ Thêm", "Delete property": "Xóa BĐS", "+ Add property": "+ Thêm BĐS", "Export CSV": "Xuất CSV", "Remove": "Xóa", "+ Deal": "+ Giao dịch", "Log current analyzer deal": "Ghi giao dịch đang phân tích", "+ Comp": "+ Giá thuê", "+ Tenant": "+ Người thuê", "+ Document": "+ Tài liệu", "Add a second deal to compare.": "Thêm giao dịch thứ hai để so sánh.", "Annual cash flow": "Dòng tiền hàng năm", "Portfolio equity": "Vốn sở hữu danh mục", "Total invested": "Tổng vốn đầu tư", "Blended cap": "Cap tổng hợp", "Blended CoC": "CoC tổng hợp", "Total P&I / mo": "Tổng G&L / th", "Properties": "Số BĐS", "Monthly cash flow by property": "Dòng tiền hàng tháng theo BĐS", "Revenue vs expenses (monthly)": "Doanh thu và chi phí (hàng tháng)", "Loan life & progress": "Vòng đời khoản vay & tiến độ", "Rent": "Tiền thuê", "Other op ex": "Chi phí khác", "No properties yet.": "Chưa có BĐS.", "No properties yet - add them in Edit properties.": "Chưa có BĐS - thêm ở tab Chỉnh sửa BĐS.", "Payoff": "Tất toán", "Pmts made": "Đã trả", "Left": "Còn lại", "% paid": "% đã trả", "Per-property results": "Kết quả theo BĐS", "CF/mo": "Dòng tiền/th", "PITI/mo": "PITI/th", "Equity": "Vốn SH", "Owned properties": "BĐS đang sở hữu", "Property & specs": "BĐS & thông số", "Income": "Thu nhập", "Operating expenses": "Chi phí vận hành", "Results": "Kết quả", "Name": "Tên", "Address": "Địa chỉ", "Type": "Loại", "ADU status": "Trạng thái ADU", "Beds": "Phòng ngủ", "Baths": "Phòng tắm", "Home sq ft": "DT nhà (sqft)", "Lot sq ft": "DT lô đất (sqft)", "Year built": "Năm xây", "Units": "Số căn", "Est. value": "Giá trị ước tính", "Purchased": "Ngày mua", "Down %": "Trả trước %", "Rate %": "Lãi suất %", "Term (yrs)": "Thời hạn (năm)", "Loan start": "Bắt đầu vay", "Loan balance override": "Ghi đè dư nợ", "Gross rent / mo": "Tiền thuê gộp / th", "Vacancy %": "Tỷ lệ trống %", "Property tax %": "Thuế BĐS %", "Insurance / yr": "Bảo hiểm / năm", "HOA / mo": "HOA / th", "Mgmt %": "Quản lý %", "Maintenance %": "Bảo trì %", "Utilities / mo": "Tiện ích / th", "PITI override / mo": "Ghi đè PITI / th", "Monthly PITI": "PITI hàng tháng", "NOI / yr": "NOI / năm", "Cap rate": "Tỷ suất vốn hóa","Cash flow": "Dòng tiền", "Debt safety (DSCR)": "An toàn nợ (DSCR)", "Price per sq ft (home)": "Giá mỗi sqft (nhà)", "Home sq ft vs price": "DT nhà so với giá", "Lot sq ft vs price": "DT lô so với giá", "Cap rate": "Tỷ suất vốn hóa", "Print": "In", "Mobile view": "Xem di động", "PITI (monthly)": "PITI (hàng tháng)", "Operating expenses (monthly)": "Chi phí vận hành (hàng tháng)", "Mortgage (P&I) / mo": "Vay gốc&lãi / th", "Property tax / mo": "Thuế BĐS / th", "Insurance / mo": "Bảo hiểm / th", "Management % of rent": "Quản lý % tiền thuê", "Management flat fee / mo": "Phí quản lý cố định / th", "Utilities (owner-paid)": "Tiện ích (chủ trả)", "+ Add utility": "+ Thêm tiện ích", "+ Property": "+ BĐS", "Added properties:": "BĐS đã thêm:", "REPS": "REPS", "REPS Hours Log": "Nhật ký giờ REPS", "REPS hours": "Giờ REPS", "Tax year": "Năm thuế", "Hours by category": "Giờ theo hạng mục", "Activity": "Hoạt động", "Time": "Thời gian", "Portfolio-wide": "Toàn danh mục", "+ Add entry": "+ Thêm mục", "Start stopwatch": "Bắt đầu bấm giờ", "Stop stopwatch": "Dừng bấm giờ", "Rental Operations": "Vận hành cho thuê", "Acquisition": "Thu mua", "Leasing & Tenant Placement": "Cho thuê & Tìm khách", "Development": "Phát triển", "Construction": "Xây dựng", "Rental income / mo": "Thu nhập thuê / th", "Operating expenses / mo": "Chi phí vận hành / th", "Dark": "Tối", "Light": "Sáng", "Blended cap rate": "Cap tổng hợp", "Blended cash-on-cash": "CoC tổng hợp", "Total monthly P&I": "Tổng G&L hàng tháng", "Cash flow / mo": "Dòng tiền / th", "PITI / mo": "PITI / th", "Payoff date": "Ngày tất toán", "Payments made": "Kỳ đã trả", "Payments left": "Kỳ còn lại", "% paid off": "% đã trả", "Home square feet": "Diện tích nhà (sqft)", "Lot square feet": "Diện tích lô (sqft)", "Estimated market value": "Giá trị thị trường ước tính", "Purchase date": "Ngày mua", "Down payment %": "Trả trước %", "Interest rate %": "Lãi suất %", "Loan term (years)": "Thời hạn vay (năm)", "Loan start date": "Ngày bắt đầu vay", "Current loan balance (override)": "Dư nợ hiện tại (nhập tay)", "Gross rent / month": "Tiền thuê gộp / th", "Insurance / year": "Bảo hiểm / năm", "HOA / month": "HOA / th", "Management %": "Quản lý %", "Utilities / month": "Tiện ích / th", "Monthly PITI (editable)": "PITI hàng tháng (nhập tay)", "Margin": "Biên LN", "Margin Deal Calculator": "Máy tính biên giao dịch", "Deal inputs": "Số liệu giao dịch", "After-repair value (ARV)": "Giá trị sau sửa (ARV)", "Rehab / repairs": "Sửa chữa", "Holding costs": "Chi phí nắm giữ", "Selling costs": "Chi phí bán", "Wholesale fee (optional)": "Phí bán sỉ (tùy chọn)", "Deal margin": "Biên lợi nhuận", "All-in cost": "Tổng chi phí", "Projected profit": "Lợi nhuận dự kiến", "Max offer (70% rule)": "Giá tối đa (quy tắc 70%)", "Est. wholesale fee": "Phí bán sỉ ước tính", "Pull from current deal": "Lấy từ giao dịch hiện tại", "Log to Deal Log": "Ghi vào Nhật ký", "Wholesale": "Bán sỉ", "Fix & Flip": "Sửa & bán", "Buy & Hold / BRRR": "Mua & giữ / BRRR", "Pass": "Bỏ qua", "WHOLESALE": "BÁN SỈ", "FIX & FLIP": "SỬA & BÁN", "BUY & HOLD / BRRR": "MUA & GIỮ / BRRR", "PASS — TOO THIN": "BỎ QUA — LỢI NHUẬN MỎNG", "Team": "Đội ngũ", "A-List Team": "Đội ngũ A-List", "Contractors": "Nhà thầu", "A-List team — all regions": "Đội ngũ A-List — mọi khu vực", "Contractors — by region": "Nhà thầu — theo khu vực", "Region coverage": "Khu vực phụ trách", "All regions": "Tất cả khu vực", "Profession": "Nghề", "Trade": "Nghề", "+ Region": "+ Khu vực", "Delete region": "Xóa khu vực", "+ Add": "+ Thêm", "None yet.": "Chưa có.", "No contacts yet.": "Chưa có liên hệ.", "Realtors & Wholesalers": "Môi giới & Bán sỉ", "General Contractors": "Nhà thầu chính", "Lender Team": "Nhóm cho vay", "Property Managers": "Quản lý BĐS", "Architects": "Kiến trúc sư", "Other": "Khác", "Realtor / Wholesaler": "Môi giới / Bán sỉ", "General Contractor": "Nhà thầu chính", "Lender": "Cho vay", "Property Manager": "Quản lý BĐS", "Architect": "Kiến trúc sư", "Plumber": "Thợ ống nước", "Electrician": "Thợ điện", "Handyman": "Thợ sửa chữa", "Flooring": "Sàn", "Cabinet": "Tủ bếp", "Roofing": "Mái", "Windows": "Cửa sổ", "Painter": "Thợ sơn", "Landscaper": "Thợ cảnh quan",  "Cash-on-cash": "Lợi nhuận tiền mặt", "Current equity": "Vốn sở hữu hiện tại", "Loan paid off": "Khoản vay đã trả", "Tenants": "Người thuê", "Phone": "Điện thoại", "Unit": "Căn", "Lease start": "Bắt đầu thuê", "Lease end": "Kết thúc thuê", "Rent/mo": "Thuê/th", "Deposit": "Đặt cọc", "Status": "Trạng thái", "Notes": "Ghi chú", "No tenants yet.": "Chưa có người thuê.", "Documents": "Tài liệu", "Category": "Danh mục", "Title": "Tiêu đề", "Cloud URL": "Đường dẫn đám mây", "Local file": "Tệp cục bộ", "Date": "Ngày", "Open": "Mở", "No documents yet.": "Chưa có tài liệu.", "Deal log": "Nhật ký giao dịch", "Address ": "Địa chỉ ", "Ask $": "Giá chào $", "Cap%": "Cap%", "CoC%": "CoC%", "Verdict": "Kết luận", "No deals logged yet.": "Chưa ghi giao dịch nào.", "Market rent comps": "Giá thuê tham chiếu thị trường", "City/Area": "Thành phố/Khu vực", "Bd": "PN", "Ba": "PT", "SqFt": "Sqft", "Source": "Nguồn", "No comps yet.": "Chưa có dữ liệu.", "Underwriting defaults": "Giá trị mặc định", "Backup & export": "Sao lưu & xuất", "About": "Giới thiệu", "Backup all (JSON)": "Sao lưu (JSON)", "Restore (JSON)": "Khôi phục (JSON)", "Down payment %": "Trả trước %", "Interest rate %": "Lãi suất %", "Loan term (yrs)": "Thời hạn vay (năm)", "Insurance $/yr": "Bảo hiểm $/năm", "Property mgmt %": "Quản lý %", "Closing costs %": "Chi phí đóng %", "No properties in this portfolio yet.": "Danh mục này chưa có BĐS.", "Cash-on-cash return": "Lợi nhuận trên tiền mặt", "Gross rent multiplier": "Hệ số tổng tiền thuê", "Break-even occupancy": "Tỷ lệ lấp đầy hòa vốn", "Break-even occ.": "Lấp đầy hòa vốn", "Effective monthly rent (after vacancy)": "Tiền thuê thực tế hàng tháng (sau trống)", "Monthly operating expenses": "Chi phí vận hành hàng tháng", "Cash flow per unit": "Dòng tiền mỗi căn", "Cash to close": "Tiền mặt để đóng", "Max price for break-even CF": "Giá tối đa để hòa vốn dòng tiền", "Rent needed for break-even CF": "Tiền thuê cần để hòa vốn", "School quality": "Chất lượng trường học", "School rating": "Điểm trường học", "Appreciation (assumed)": "Tăng giá (giả định)", "Net monthly cash flow": "Dòng tiền ròng hàng tháng", "Exceptional": "Xuất sắc", "Strong": "Mạnh", "Solid": "Vững", "Marginal": "Cận biên", "Weak": "Yếu", "Poor": "Kém", "PASS": "BỎ QUA", "THIN": "MỎNG", "MARGINAL": "CẬN BIÊN", "STRONG": "MẠNH"};
+function _tnode(root){if(lang!=='vi'||!root)return;var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),n,arr=[];while(n=w.nextNode())arr.push(n);arr.forEach(function(t){var s=t.nodeValue;if(!s)return;var k=s.trim();if(!k)return;var nv=null;if(TR[k])nv=s.replace(k,TR[k]);else if(/^Compare( - \d+)?$/.test(k))nv=s.replace('Compare','So sánh');if(nv===null||nv===s)return;var par=t.parentNode;if(par&&par.tagName==='OPTION'&&!par.hasAttribute('value'))par.setAttribute('value',k);t.nodeValue=nv;});root.querySelectorAll('[placeholder]').forEach(function(e){var k=e.getAttribute('placeholder');if(TR[k])e.setAttribute('placeholder',TR[k]);});root.querySelectorAll('[title]').forEach(function(e){var k=e.getAttribute('title');if(TR[k])e.setAttribute('title',TR[k]);});}
 function applyLang(){var a=document.getElementById('app');if(a)_tnode(a);}
 function setupLangObserver(){var a=document.getElementById('app');if(!a||!window.MutationObserver)return;var busy=false;var ob=new MutationObserver(function(){if(lang!=='vi'||busy)return;busy=true;_tnode(a);busy=false;});ob.observe(a,{childList:true,subtree:true,characterData:true});}
 /* ================= TEAM & CONTRACTORS ================= */
 var regions=[], alist=[], contractors=[], conRegion=null, teamSub="alist";
 var ALIST_PROF=[["Realtor / Wholesaler","Realtors & Wholesalers"],["General Contractor","General Contractors"],["Lender","Lender Team"],["Property Manager","Property Managers"],["Architect","Architects"],["Other","Other"]];
-var TRADES=["Plumber","Electrician","Handyman","Flooring","Cabinet","Roofing","Windows","Painter"];
+var TRADES=["Plumber","Electrician","Handyman","Flooring","Cabinet","Roofing","Windows","Painter","Landscaper"];
 function loadTeam(){
   try{var r=store.get("rp_regions");regions=r?JSON.parse(r):[];}catch(e){regions=[];}
   if(!regions.length)regions=[{id:uid(),name:"Los Angeles"},{id:uid(),name:"Orange County"}];
@@ -1311,6 +1311,211 @@ function repsHTML(){
   var table='<div class="card" style="padding:0;overflow:hidden"><div class="seg" style="padding:13px 16px 4px">Hours log &middot; '+repsYear+'</div><div style="overflow-x:auto"><table class="reps-tbl"><thead><tr><th>Date</th><th>Category</th><th>Activity</th><th>Property</th><th>Time</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
   var note='<p style="font-size:11px;color:'+C.faint+';margin-top:12px;line-height:1.55">Logs hours toward the REPS 750-hour test for the selected tax year (hours reset each Jan 1). REPS also requires that more than half of total personal-service time for the year is in real property trades. Keep entries contemporaneous. Tracking aid only, not tax advice - confirm with your CPA.</p>';
   return st+'<div><div class="seg">Tax &middot; Real Estate Professional Status</div><h1 style="font-size:22px;margin:2px 0 2px">REPS Hours Log</h1></div>'+hero+controls+propsBar+breakdown+table+note;
+}
+
+/* ============ Portfolio: separate PITI section + reworked operating expenses (HOA, Mgmt %/fee, detailed Utilities) ============ */
+function blankProp(nm){return {id:uid(),name:nm||"New property",addr:"",type:"Duplex",purchaseDate:"",price:1200000,dpPct:DEFAULTS.dpPct,rate:DEFAULTS.rate,termYears:DEFAULTS.termYears,loanStart:"",value:1200000,balOverride:0,units:2,rent:6000,vacPct:DEFAULTS.vacPct,taxPct:DEFAULTS.taxPct,insurance:DEFAULTS.insurance,piMo:"",taxMo:"",insMo:"",hoa:0,pmPct:DEFAULTS.pmPct,pmFee:0,utilList:[],adu:"none",beds:0,baths:0,homeSqft:0,lotSqft:0,yearBuilt:0,notes:"",tenants:[],docs:[]};}
+function utilTotal(p){var t=0;if(p&&p.utilList&&p.utilList.length){p.utilList.forEach(function(u){t+=num(u.cost);});return t;}return p?num(p.utilities):0;}
+function pHas(v){return v!==undefined&&v!==null&&v!=="";}
+function pCalc(p){
+  var price=num(p.price),dp=num(p.dpPct)/100,r=num(p.rate)/100/12,n=num(p.termYears)*12,loan=price*(1-dp);
+  var compPi=(loan>0&&n>0)?(r===0?loan/n:loan*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1)):0;
+  var piMo=pHas(p.piMo)?num(p.piMo):compPi;
+  var taxMo=pHas(p.taxMo)?num(p.taxMo):(price*num(p.taxPct)/100/12);
+  var insMo=pHas(p.insMo)?num(p.insMo):(num(p.insurance)/12);
+  var piti=piMo+taxMo+insMo;
+  var egi=num(p.rent)*12*(1-num(p.vacPct)/100);
+  var mgmtMo=num(p.rent)*num(p.pmPct)/100+num(p.pmFee),util=utilTotal(p),hoa=num(p.hoa);
+  var otherOpexMo=hoa+mgmtMo+util;
+  var noi=egi-(taxMo+insMo+otherOpexMo)*12;
+  var mcf=egi/12-piti-otherOpexMo,acf=mcf*12,ds=piMo*12;
+  var cashInv=price*dp+price*(num(DEFAULTS.closingPct)/100);
+  var cap=price>0?noi/price*100:0,coc=cashInv>0?acf/cashInv*100:0,dscr=ds>0?noi/ds:0;
+  var made=Math.min(n,mBetween(p.loanStart||p.purchaseDate));
+  var balNow=(pHas(p.balOverride)&&num(p.balOverride)>0)?num(p.balOverride):balAfter(loan,r,n,compPi,made);
+  var equity=num(p.value)-balNow,paidOff=loan>0?(loan-balNow)/loan*100:0;
+  return {loan:loan,pi:piMo,piti:piti,noi:noi,acf:acf,mcf:mcf,cap:cap,coc:coc,dscr:dscr,equity:equity,balNow:balNow,paidOff:paidOff,cashInv:cashInv,otherOpexMo:otherOpexMo,taxMo:taxMo,insMo:insMo,util:util,mgmtMo:mgmtMo,hoa:hoa,compPi:compPi};
+}
+function pitiField(i,k,lab,defVal){var p=curPf().props[i];var val=pHas(p[k])?p[k]:Math.round(defVal);
+  return '<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;color:'+C.faint+'">'+lab+'</span><input class="in" data-pd="'+k+'" data-t="$" type="number" value="'+esc(val)+'"></div>';}
+function utilitiesBlock(i,p){
+  p.utilList=p.utilList||[];
+  var rows=p.utilList.map(function(u,ui){return '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center">'+
+    '<input class="in text" data-uk="name" data-ui="'+ui+'" value="'+esc(u.name)+'" placeholder="Vendor (e.g. Eastern Trash Co.)" style="flex:1;min-width:170px">'+
+    '<input class="in text" data-uk="contact" data-ui="'+ui+'" value="'+esc(u.contact)+'" placeholder="Contact (phone / email)" style="flex:1;min-width:170px">'+
+    '<input class="in" data-uk="cost" data-ui="'+ui+'" type="number" value="'+esc(u.cost)+'" placeholder="$/mo" style="width:96px">'+
+    '<button class="chip" data-udel="'+ui+'" style="color:'+C.bad+'">x</button></div>';}).join('');
+  return '<div class="seg" style="margin-top:16px">Utilities (owner-paid)</div><div style="font-size:11.5px;color:'+C.faint+';margin:4px 0 2px;line-height:1.5">Add each owner-paid utility with its vendor, contact, and monthly cost.</div>'+rows+
+    '<div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><button class="chip" id="pdUtilAdd">+ Add utility</button><span style="font-size:13px;color:'+C.muted+'">Total utilities: <b id="pdUtilTotal" style="color:'+C.ink+'">'+money(utilTotal(p))+'</b> / mo</span></div>';
+}
+function editorHTML(){
+  var pf=curPf();
+  if(!pf.props.length)return '<div class="card"><p style="font-size:13.5px;color:'+C.muted+';margin:0 0 12px">No properties in this portfolio yet.</p><button class="chip" id="edAdd">+ Add property</button></div>';
+  if(pSel>=pf.props.length)pSel=0;var i=pSel,p=pf.props[i];p.tenants=p.tenants||[];p.docs=p.docs||[];p.utilList=p.utilList||[];
+  var chips=pf.props.map(function(x,j){return '<button class="chip'+(j===pSel?' active':'')+'" data-psel="'+j+'">'+esc(x.name||("Property "+(j+1)))+'</button>';}).join('');
+  var selrow='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">'+chips+'<button class="chip" id="edAdd">+ Add</button><span style="flex:1"></span><button class="chip" id="edDel" style="color:'+C.bad+'">Delete property</button></div>';
+  var specs=catCard("Property &amp; specs",pin(i,"name","Name","text")+pin(i,"addr","Address","text")+pin(i,"type","Type","sel:PTYPES")+pin(i,"adu","ADU status","sel:ADUS")+pin(i,"beds","Beds","n")+pin(i,"baths","Baths","n")+pin(i,"homeSqft","Home square feet","n")+pin(i,"lotSqft","Lot square feet","n")+pin(i,"yearBuilt","Year built","n")+pin(i,"units","Units","n")+pin(i,"value","Estimated market value","$")+pin(i,"purchaseDate","Purchase date","date"));
+  var fin=catCard("Purchase &amp; financing",pin(i,"price","Purchase price","$")+pin(i,"dpPct","Down payment %","%")+pin(i,"rate","Interest rate %","%")+pin(i,"termYears","Loan term (years)","n")+pin(i,"loanStart","Loan start date","date")+pin(i,"balOverride","Current loan balance (override)","$"));
+  var inc=catCard("Income",pin(i,"rent","Gross rent / month","$")+pin(i,"vacPct","Vacancy %","%"));
+  var c0=pCalc(p);
+  var piti='<div class="card"><div class="seg">PITI (monthly)</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:10px">'+
+    pitiField(i,"piMo","Mortgage (P&amp;I) / mo",c0.compPi)+pitiField(i,"taxMo","Property tax / mo",num(p.price)*num(p.taxPct)/100/12)+pitiField(i,"insMo","Insurance / mo",num(p.insurance)/12)+
+    '</div><div style="margin-top:10px;font-size:13px;color:'+C.muted+'">= Monthly PITI: <b id="pdPitiSum" style="color:'+C.ink+'">'+money(c0.piti)+'</b></div></div>';
+  var opex='<div class="card"><div class="seg">Operating expenses (monthly)</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:10px">'+
+    pin(i,"hoa","HOA / mo","$")+pin(i,"pmPct","Management % of rent","%")+pin(i,"pmFee","Management flat fee / mo","$")+
+    '</div>'+utilitiesBlock(i,p)+'</div>';
+  var summary='<div class="card"><div class="seg">Results</div><div id="pdSummary" style="margin-top:6px">'+pdSummaryHTML(c0)+'</div></div>';
+  return selrow+'<div class="grid"><div class="col">'+specs+fin+inc+piti+opex+'</div><div class="col results">'+summary+'</div></div><div style="height:16px"></div>'+tenantsCard(p)+'<div style="height:16px"></div>'+docsCard(p);
+}
+function refreshEditorCalc(){var p=curPf().props[pSel];if(!p)return;var c=pCalc(p);
+  var sm=document.getElementById("pdSummary");if(sm)sm.innerHTML=pdSummaryHTML(c);
+  var ps=document.getElementById("pdPitiSum");if(ps)ps.textContent=money(c.piti);
+  var ut=document.getElementById("pdUtilTotal");if(ut)ut.textContent=money(c.util);}
+function attachEditor(){
+  var ea=document.getElementById("edAdd");if(ea)ea.onclick=function(){curPf().props.push(blankProp());pSel=curPf().props.length-1;savePortfolio();renderApp();};
+  if(!curPf().props.length)return;
+  var p=curPf().props[pSel];p.tenants=p.tenants||[];p.docs=p.docs||[];p.utilList=p.utilList||[];
+  document.querySelectorAll("[data-psel]").forEach(function(b){b.onclick=function(){pSel=+b.getAttribute("data-psel");renderApp();};});
+  var ed=document.getElementById("edDel");if(ed)ed.onclick=function(){if(!confirm("Delete this property?"))return;curPf().props.splice(pSel,1);pSel=0;savePortfolio();renderApp();};
+  document.querySelectorAll("[data-pd]").forEach(function(inp){var h=function(){var k=inp.getAttribute("data-pd"),t=inp.getAttribute("data-t");p[k]=(t==="text"||t==="date"||t==="sel")?inp.value:num(inp.value);savePortfolio();refreshEditorCalc();};inp.oninput=h;if(inp.tagName==="SELECT")inp.onchange=h;});
+  var ua=document.getElementById("pdUtilAdd");if(ua)ua.onclick=function(){p.utilList.push({name:"",contact:"",cost:""});savePortfolio();renderApp();};
+  document.querySelectorAll("[data-uk]").forEach(function(inp){inp.oninput=function(){var ui=+inp.getAttribute("data-ui");p.utilList[ui][inp.getAttribute("data-uk")]=inp.value;savePortfolio();refreshEditorCalc();};});
+  document.querySelectorAll("[data-udel]").forEach(function(b){b.onclick=function(){p.utilList.splice(+b.getAttribute("data-udel"),1);savePortfolio();renderApp();};});
+  var ta=document.getElementById("tenAdd");if(ta)ta.onclick=function(){p.tenants.push({name:"",phone:"",email:"",unit:"",lstart:"",lend:"",rent:"",deposit:"",status:"Current",notes:""});savePortfolio();renderApp();};
+  document.querySelectorAll("[data-tk]").forEach(function(inp){var h=function(){p.tenants[+inp.getAttribute("data-tidx")][inp.getAttribute("data-tk")]=inp.value;savePortfolio();};inp.oninput=h;if(inp.tagName==="SELECT")inp.onchange=h;});
+  document.querySelectorAll("[data-tdel]").forEach(function(bt){bt.onclick=function(){if(!confirm("Remove tenant?"))return;p.tenants.splice(+bt.getAttribute("data-tdel"),1);savePortfolio();renderApp();};});
+  var da=document.getElementById("docAdd");if(da)da.onclick=function(){p.docs.push({cat:"Leases",title:"",url:"",file:"",date:new Date().toISOString().slice(0,10),notes:""});savePortfolio();renderApp();};
+  document.querySelectorAll("[data-dk]").forEach(function(inp){inp.oninput=function(){p.docs[+inp.getAttribute("data-didx")][inp.getAttribute("data-dk")]=inp.value;savePortfolio();};inp.onchange=function(){var k=inp.getAttribute("data-dk");if(k==="cat"||k==="file"||k==="url")renderApp();};});
+  document.querySelectorAll("[data-ddel]").forEach(function(bt){bt.onclick=function(){if(!confirm("Remove document?"))return;p.docs.splice(+bt.getAttribute("data-ddel"),1);savePortfolio();renderApp();};});
+}
+function svgRevExp(props,res){
+  if(!props.length)return "";
+  var rows=props.map(function(p,i){return {name:p.name||"Property",rent:num(p.rent),piti:res[i].piti,other:res[i].otherOpexMo,cost:res[i].piti+res[i].otherOpexMo};});
+  var max=Math.max(1,Math.max.apply(null,rows.map(function(r){return Math.max(r.rent,r.cost);})));
+  var W=600,L=120,BW=380,rh=54,H=rows.length*rh+6,sc=function(v){return BW*v/max;};
+  var s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto">';
+  rows.forEach(function(r,i){var y=i*rh+10;
+    s+='<text x="0" y="'+(y+12)+'" font-size="12" fill="'+C.ink+'">'+esc(String(r.name).slice(0,16))+'</text>';
+    s+='<rect x="'+L+'" y="'+y+'" width="'+sc(r.rent).toFixed(1)+'" height="14" rx="3" fill="'+C.go+'"/>';
+    s+='<text x="'+(L+sc(r.rent)+6).toFixed(1)+'" y="'+(y+11)+'" font-size="10.5" fill="'+C.muted+'">'+money(r.rent)+'</text>';
+    var y2=y+18;
+    s+='<rect x="'+L+'" y="'+y2+'" width="'+sc(r.piti).toFixed(1)+'" height="14" rx="3" fill="'+C.bad+'"/>';
+    s+='<rect x="'+(L+sc(r.piti)).toFixed(1)+'" y="'+y2+'" width="'+sc(r.other).toFixed(1)+'" height="14" fill="#E0A9A2"/>';
+    s+='<text x="'+(L+sc(r.cost)+6).toFixed(1)+'" y="'+(y2+11)+'" font-size="10.5" fill="'+C.muted+'">'+money(r.cost)+'</text>';
+  });
+  s+='</svg>';
+  return s+'<div style="display:flex;gap:14px;font-size:11px;color:'+C.muted+';margin-top:4px;flex-wrap:wrap">'+
+    '<span><span style="display:inline-block;width:10px;height:10px;background:'+C.go+';border-radius:2px"></span> Rent</span>'+
+    '<span><span style="display:inline-block;width:10px;height:10px;background:'+C.bad+';border-radius:2px"></span> PITI</span>'+
+    '<span><span style="display:inline-block;width:10px;height:10px;background:#E0A9A2;border-radius:2px"></span> Other op ex</span></div>';
+}
+function refreshPf(){
+  var pf=curPf(),res=pf.props.map(pCalc);
+  var T=function(f){return res.reduce(function(s,c){return s+c[f];},0);};
+  var totCf=T("mcf"),totEq=T("equity"),totInv=T("cashInv"),totPi=T("pi"),totNoi=T("noi");
+  var totPrice=pf.props.reduce(function(s,p){return s+num(p.price);},0)||1;
+  var kp=[["Monthly cash flow",money(totCf),totCf<0?C.bad:C.go],["Annual cash flow",money(totCf*12),totCf<0?C.bad:C.go],
+    ["Portfolio equity",money(totEq),C.ink],["Total invested",money(totInv),C.ink],
+    ["Blended cap rate",pct(totNoi/totPrice*100),C.ink],["Blended cash-on-cash",pct(totInv>0?totCf*12/totInv*100:0),totCf<0?C.bad:C.go],
+    ["Total monthly P&I",money(totPi),C.ink],["Properties",String(pf.props.length),C.ink]];
+  var kc=document.getElementById("pfKpis");if(kc)kc.innerHTML=kp.map(function(k){return '<div class="card" style="padding:12px 14px"><div class="seg" style="font-size:10px">'+k[0]+'</div><div class="out" style="font-size:20px;font-weight:700;margin-top:4px;color:'+k[2]+'">'+k[1]+'</div></div>';}).join('');
+  var cf=document.getElementById("pfChartCf");if(cf)cf.innerHTML=pf.props.length?svgCash(pf.props,res):'<div style="color:'+C.muted+';font-size:13px">No properties yet.</div>';
+  var re=document.getElementById("pfChartRe");if(re)re.innerHTML=pf.props.length?svgRevExp(pf.props,res):'<div style="color:'+C.muted+';font-size:13px">No properties yet.</div>';
+  var ll=document.getElementById("pfLoanLife");if(ll)ll.innerHTML=loanLifeHTML();
+  var rc=document.getElementById("pfResults");if(!rc)return;
+  if(!pf.props.length){rc.innerHTML="";return;}
+  var body=res.map(function(c,i){var p=pf.props[i];
+    return '<tr><td class="lft pf-nm">'+esc(p.name)+'</td>'+
+      '<td class="rgt" style="font-weight:600;color:'+(c.mcf<0?C.bad:C.go)+'">'+money(c.mcf)+'</td>'+
+      '<td class="rgt">'+money(num(p.rent))+'</td>'+
+      '<td class="rgt">'+money(c.otherOpexMo)+'</td>'+
+      '<td class="rgt">'+money(c.piti)+'</td><td class="rgt">'+pct(c.cap)+'</td><td class="rgt">'+mult(c.dscr)+'</td>'+
+      '<td class="rgt" style="font-weight:600">'+money(c.equity)+'</td></tr>';}).join('');
+  rc.innerHTML='<div class="card pf-card" style="padding:0;overflow:hidden"><div class="seg">Per-property results</div><div style="overflow-x:auto;padding-top:4px"><table class="pf-tbl"><thead><tr>'+
+    '<th class="lft">Property</th><th class="rgt">Cash flow / mo</th><th class="rgt">Rental income / mo</th><th class="rgt">Operating expenses / mo</th><th class="rgt">PITI / mo</th><th class="rgt">Cap rate</th><th class="rgt">DSCR</th><th class="rgt">Equity</th></tr></thead><tbody>'+body+'</tbody></table></div></div>';
+}
+
+/* ============ Analyze: Print-friendly + Mobile summary ============ */
+function buildDealSummary(){
+  var d=deal,m=compute(d),nm=currentName()||d.address||"Deal";
+  var row=function(l,v,strong){return '<tr><td style="padding:3px 0;color:#5a5a5a">'+l+'</td><td style="padding:3px 0;text-align:right;font-variant-numeric:tabular-nums'+(strong?';font-weight:700':'')+'">'+v+'</td></tr>';};
+  var cfCol=m.mcf<0?'#B23A2E':'#1F7A4D';
+  var card=function(lbl,val,col){return '<div style="flex:1;min-width:110px;border:1px solid #E7E3DA;border-radius:10px;padding:8px 10px"><div style="font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:#8a8a8a">'+lbl+'</div><div style="font-size:19px;font-weight:800;color:'+(col||'#14181F')+'">'+val+'</div></div>';};
+  return '<div style="font-family:-apple-system,Segoe UI,Arial,sans-serif;color:#14181F;max-width:520px;margin:0 auto;background:#fff">'+
+    '<div style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a8a8a">Rental deal summary</div>'+
+    '<div style="font-size:18px;font-weight:700;margin:1px 0 1px">'+esc(nm)+'</div>'+
+    '<div style="font-size:12px;color:#6a6a6a;margin-bottom:10px">'+esc(d.address||"")+(d.address?' &middot; ':'')+d.unitCount+' unit'+(d.unitCount>1?'s':'')+(d.aduOn?' + ADU':'')+'</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'+card("Net cash flow / mo",money(m.mcf),cfCol)+card("Grade",m.grade.toFixed(1)+' '+m.gm.word,m.gm.color)+card("Verdict",m.verdict,m.vColor)+'</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:13px">'+
+      row("Purchase price","$"+Math.round(num(d.price)).toLocaleString(),1)+row("Down payment ("+num(d.dpPct)+"%)",money(m.down))+row("Loan amount",money(m.loan))+
+      row("Monthly P&amp;I",money(m.pi))+row("Total cash to close",money(m.cashToClose),1)+row("Gross monthly rent",money(m.grossMo))+
+      row("Effective gross income / yr",money(m.egi))+row("Monthly operating expenses",money(m.opex/12))+row("Net operating income / yr",money(m.noi))+
+      row("Net monthly cash flow",money(m.mcf),1)+'</table>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;border-top:1px solid #E7E3DA">'+
+      row("Cap rate",m.cap.toFixed(2)+"%")+row("Cash-on-cash",m.coc.toFixed(1)+"%")+row("DSCR",m.dscr.toFixed(2)+"x")+row("GRM",m.grm.toFixed(2)+"x")+row("Break-even occupancy",m.breakevenOcc.toFixed(1)+"%")+'</table>'+
+    '<div style="font-size:9.5px;color:#9a9a9a;margin-top:10px">Screening aid only, not financial advice &middot; Real Estate Investment Platform</div></div>';
+}
+function ensurePrintStyle(){if(document.getElementById("dealPrintStyle"))return;var s=document.createElement("style");s.id="dealPrintStyle";s.textContent="#dealPrintArea{display:none}@media print{body.printing header,body.printing #app{display:none!important}body.printing #dealPrintArea{display:block!important;padding:6px}}";document.head.appendChild(s);}
+function printDeal(){ensurePrintStyle();var area=document.getElementById("dealPrintArea");if(!area){area=document.createElement("div");area.id="dealPrintArea";document.body.appendChild(area);}area.innerHTML=buildDealSummary();document.body.classList.add("printing");try{window.print();}catch(e){}setTimeout(function(){document.body.classList.remove("printing");},600);}
+function mobileDeal(){var ov=document.getElementById("dealMobileOv");if(!ov){ov=document.createElement("div");ov.id="dealMobileOv";document.body.appendChild(ov);}
+  ov.setAttribute("style","position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:18px");
+  ov.innerHTML='<div style="background:#fff;border-radius:14px;max-width:400px;width:100%;padding:18px;margin:auto;box-shadow:0 12px 44px rgba(0,0,0,.35)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a8a8a">Mobile view &middot; show on your phone</span><button id="dealMobClose" style="border:0;background:#eee;border-radius:8px;padding:6px 11px;cursor:pointer;font-weight:700">Close</button></div>'+buildDealSummary()+'</div>';
+  var c=document.getElementById("dealMobClose");if(c)c.onclick=function(){ov.remove();};ov.onclick=function(e){if(e.target===ov)ov.remove();};}
+function injectAnalyzeButtons(){ensurePrintStyle();var bp=document.getElementById("btnPrint");if(bp)bp.onclick=printDeal;var bm=document.getElementById("btnMobile");if(bm)bm.onclick=mobileDeal;}
+if(typeof attachAnalyze==="function"){var _origAttachAnalyze=attachAnalyze;attachAnalyze=function(){_origAttachAnalyze.apply(this,arguments);injectAnalyzeButtons();};}
+
+/* ============ Analyze: per-unit beds/baths + reworked print/mobile summary ============ */
+function unitRow(i){
+  var b=num((deal.unitBeds||[])[i]),ba=num((deal.unitBaths||[])[i]),rv=(deal.units[i]!=null?deal.units[i]:0);
+  return '<div class="row" style="align-items:center;gap:6px"><span class="lab" style="min-width:46px">Unit '+(i+1)+'</span><span style="flex:1"></span>'+
+    '<input class="in" data-ubed="'+i+'" type="number" min="0" value="'+esc(b)+'" title="Bedrooms" style="width:44px">'+
+    '<span class="lab" style="font-size:11px">bd</span>'+
+    '<input class="in" data-ubath="'+i+'" type="number" min="0" step="0.5" value="'+esc(ba)+'" title="Bathrooms" style="width:44px">'+
+    '<span class="lab" style="font-size:11px">ba</span>'+
+    '<span class="lab" style="font-size:11px">$</span>'+
+    '<input class="in" data-key="unit'+i+'" type="number" value="'+esc(rv)+'" title="Monthly rent" style="width:96px">'+
+    '</div>';
+}
+function injectAnalyzeButtons(){
+  ensurePrintStyle();
+  var bp=document.getElementById("btnPrint");if(bp)bp.onclick=printDeal;
+  var bm=document.getElementById("btnMobile");if(bm)bm.onclick=mobileDeal;
+  document.querySelectorAll("[data-ubed]").forEach(function(inp){inp.oninput=function(){var i=+inp.getAttribute("data-ubed");deal.unitBeds=deal.unitBeds||[];deal.unitBeds[i]=num(inp.value);save();};});
+  document.querySelectorAll("[data-ubath]").forEach(function(inp){inp.oninput=function(){var i=+inp.getAttribute("data-ubath");deal.unitBaths=deal.unitBaths||[];deal.unitBaths[i]=num(inp.value);save();};});
+}
+function buildDealSummary(){
+  var d=deal,m=compute(d),nm=currentName()||d.address||"Deal";
+  var cfCol=m.mcf<0?'#B23A2E':'#1F7A4D';
+  var tb=0,tba=0,i;for(i=0;i<d.unitCount;i++){tb+=num((d.unitBeds||[])[i]);tba+=num((d.unitBaths||[])[i]);}
+  var opexExMaint=(m.opex-m.maint)/12, vacLoss=m.grossMo*(num(d.vacPct)/100), maintOcc=m.maint/12+vacLoss;
+  var row=function(l,v,strong,col){return '<tr><td style="padding:3px 0;color:#5a5a5a">'+l+'</td><td style="padding:3px 0;text-align:right;font-variant-numeric:tabular-nums'+(strong?';font-weight:700':'')+(col?';color:'+col:'')+'">'+v+'</td></tr>';};
+  var card=function(lbl,val,col){return '<div style="flex:1;min-width:108px;border:1px solid #E7E3DA;border-radius:10px;padding:8px 10px"><div style="font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:#8a8a8a">'+lbl+'</div><div style="font-size:18px;font-weight:800;color:'+(col||'#14181F')+'">'+val+'</div></div>';};
+  return '<div style="font-family:-apple-system,Segoe UI,Arial,sans-serif;color:#14181F;max-width:520px;margin:0 auto;background:#fff">'+
+    '<div style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a8a8a">Rental deal summary</div>'+
+    '<div style="font-size:18px;font-weight:700;margin:1px 0 1px">'+esc(nm)+'</div>'+
+    '<div style="font-size:12px;color:#6a6a6a;margin-bottom:10px">'+esc(d.address||"")+(d.address?' &middot; ':'')+d.unitCount+' unit'+(d.unitCount>1?'s':'')+(d.aduOn?' + ADU':'')+'</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">'+
+      card("Net cash flow / mo",money(m.mcf),cfCol)+
+      card("Grade",m.grade.toFixed(1)+' '+m.gm.word,cfCol)+
+      card("Beds / baths",tb+' bd / '+tba+' ba')+
+    '</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:13px">'+
+      row("Purchase price","$"+Math.round(num(d.price)).toLocaleString(),1)+
+      row("Down payment ("+num(d.dpPct)+"%)",money(m.down))+
+      row("Loan amount",money(m.loan))+
+      row("Total cash to close",money(m.cashToClose),1)+
+      row("Cap rate",m.cap.toFixed(2)+"%")+
+      row("DSCR",m.dscr.toFixed(2)+"x")+
+    '</table>'+
+    '<div style="border-top:2px solid #14181F;margin:10px 0"></div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:13px">'+
+      row("Effective monthly rent",money(m.grossMo))+
+      row("Monthly P&amp;I",money(m.pi))+
+      row("Monthly operating expenses",money(opexExMaint))+
+      row("Maintenance &amp; occupancy",money(maintOcc))+
+      row("Net monthly cash flow",money(m.mcf),1,cfCol)+
+    '</table>'+
+    '<div style="font-size:9.5px;color:#9a9a9a;margin-top:10px">Screening aid only, not financial advice &middot; Real Estate Investment Platform</div></div>';
 }
 
 document.addEventListener('DOMContentLoaded',function(){
