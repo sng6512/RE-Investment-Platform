@@ -195,7 +195,7 @@
 </head>
 <body>
 <div class="wrap" id="app"></div>
-<div style="max-width:1100px;margin:26px auto 0;padding:14px 16px 4px;border-top:1px solid var(--line);text-align:center;font-family:var(--sans);font-size:11.5px;color:var(--faint);line-height:1.6">Real Estate Investment Platform &middot; <b style="color:var(--muted);font-weight:600">v1.5</b> &middot; updated Sep 2026 &middot; screening aid only, not financial advice</div>
+<div style="max-width:1100px;margin:26px auto 0;padding:14px 16px 4px;border-top:1px solid var(--line);text-align:center;font-family:var(--sans);font-size:11.5px;color:var(--faint);line-height:1.6">Real Estate Investment Platform &middot; <b style="color:var(--muted);font-weight:600">v1.6</b> &middot; updated Sep 2026 &middot; screening aid only, not financial advice</div>
 <script>
 var _memStore={};
 var store={
@@ -210,10 +210,16 @@ var GREEN_H="#5FC98C",AMBER_H="#E3B455",RED_H="#F08A7E";
 
 var DEFAULT_DEAL={address:"404 E El Monte St, San Gabriel CA",price:1060000,dpPct:50,rate:7.37,termYears:30,
   closingPct:2.5,rehab:10000,aduBuildCost:0,unitCount:1,units:[3400,0,0,0,0,0],aduOn:false,aduRent:0,
-  otherIncome:0,vacPct:5,taxPct:1.2,insurance:1500,hoa:0,pmPct:0,maintPct:1,utilities:0,apprPct:3,schoolRating:7,homeSqft:1180,lotSqft:8250,unitBeds:[0,0,0,0,0,0],unitBaths:[0,0,0,0,0,0]};
+  otherIncome:0,vacPct:5,taxPct:1.2,insurance:1500,hoa:0,pmPct:0,maintPct:1,utilities:0,opexOverride:0,upside:"none",condition:"light",apprPct:3,schoolRating:7,homeSqft:1180,lotSqft:8250,unitBeds:[0,0,0,0,0,0],unitBaths:[0,0,0,0,0,0]};
 
 function num(v){var n=parseFloat(v);return isNaN(n)?0:n;}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+/* v1.6 grading helpers */
+function scoreCoC(c){if(c>=10)return 10;if(c>=8)return 9;if(c>=6)return 7.5;if(c>=4)return 6;if(c>=2)return 4;if(c>=0)return 2.5;if(c>=-2)return 1;return 0;}
+function scoreCFDoor(v){if(v>=500)return 10;if(v>=350)return 8.5;if(v>=200)return 7;if(v>=100)return 5.5;if(v>=0)return 4;if(v>=-150)return 2;if(v>=-400)return 1;return 0;}
+function scoreYield(y){return clamp((y-3.5)/3.5*10,0,10);}
+var UPSIDE_S={none:{s:3,label:"No obvious upside"},possible:{s:7,label:"ADU / added unit possible"},strong:{s:10,label:"ADU + lot split or big rent upside"}};
+var COND_S={turnkey:{s:9.5,label:"Turnkey"},light:{s:8,label:"Light cosmetic"},heavy:{s:5,label:"Heavy rehab"},problem:{s:3,label:"Tenants in place / permit issues"}};
 function money(n){return (n<0?"-$":"$")+Math.abs(Math.round(n)).toLocaleString();}
 function pct(n){return n.toFixed(1)+"%";}
 function mult(n){return n.toFixed(2)+"x";}
@@ -243,7 +249,9 @@ function compute(d){
   var grossYr=grossMo*12,vac=num(d.vacPct)/100,egi=grossYr*(1-vac);
   var occUnits=0;for(var j=0;j<d.unitCount;j++)if(num(d.units[j])>0)occUnits++;if(aduRent>0)occUnits++;
   var taxes=price*(num(d.taxPct)/100),pm=grossYr*(num(d.pmPct)/100),maint=price*(num(d.maintPct)/100);
-  var opex=taxes+num(d.insurance)+num(d.hoa)+pm+maint+num(d.utilities);
+  var opexOv=num(d.opexOverride);
+  var opexParts=taxes+num(d.insurance)+num(d.hoa)+pm+maint+num(d.utilities);
+  var opex=opexOv>0?opexOv:opexParts;
   var noi=egi-opex,ds=pi*12,acf=noi-ds,mcf=acf/12;
   var cap=price>0?noi/price*100:0,coc=cashToClose>0?acf/cashToClose*100:0,grm=grossYr>0?price/grossYr:0,dscr=ds>0?noi/ds:0;
   var breakevenOcc=grossYr>0?(opex+ds)/grossYr*100:0;
@@ -252,8 +260,8 @@ function compute(d){
   var fixedNonPrice=num(d.insurance)+num(d.hoa)+num(d.utilities);
   var denom=taxPct+maintPct+(1-dp)*k*12;
   var maxPrice=denom>0?(egi-fixedNonPrice-grossYr*pmPct)/denom:0;
-  var fixedOpex=taxes+num(d.insurance)+num(d.hoa)+maint+num(d.utilities);
-  var denom2=1-vac-pmPct;
+  var fixedOpex=opexOv>0?opexOv:(taxes+num(d.insurance)+num(d.hoa)+maint+num(d.utilities));
+  var denom2=opexOv>0?(1-vac):(1-vac-pmPct);
   var beGrossYr=denom2>0?(ds+fixedOpex)/denom2:0;
   var beRentMo=beGrossYr/12;
   var cfPerUnit=mcf/Math.max(occUnits,1),appr=num(d.apprPct),school=num(d.schoolRating);
@@ -261,15 +269,25 @@ function compute(d){
   var ppsf=homeSqft>0?price/homeSqft:0;
   var sfHomePerK=(homeSqft>0&&price>0)?homeSqft/(price/1000):0;
   var sfLotPerK=(lotSqft>0&&price>0)?lotSqft/(price/1000):0;
+  var doors=Math.max(1,num(d.unitCount)+(d.aduOn&&aduRent>0?1:0));
+  var cfDoor=mcf/doors,grossYield=price>0?grossYr/price*100:0;
+  var loanConst=loan>0?pi*12/loan*100:0;
+  var up=UPSIDE_S[d.upside]||UPSIDE_S.none,cond=COND_S[d.condition]||COND_S.light;
   var factors=[
-    {key:"Cash flow",w:.25,s:scoreCF(mcf),detail:money(mcf)+"/mo"},
+    {key:"Cash-on-cash return",w:.25,s:scoreCoC(coc),detail:pct(coc)},
+    {key:"Cash flow per door",w:.20,s:scoreCFDoor(cfDoor),detail:money(cfDoor)+"/mo"},
     {key:"Debt safety (DSCR)",w:.20,s:scoreDSCR(dscr),detail:mult(dscr)},
-    {key:"School quality",w:.20,s:clamp(school,0,10),detail:school.toFixed(0)+"/10"},
-    {key:"Price per sq ft (home)",w:.15,s:homeSqft>0?clamp((1050-ppsf)/60,0,10):0,detail:homeSqft>0?"$"+Math.round(ppsf)+"/sf":"n/a"},
-    {key:"Cap rate",w:.10,s:clamp(cap/6*10,0,10),detail:pct(cap)},
-    {key:"Appreciation (assumed)",w:.10,s:clamp(appr/5*10,0,10),detail:pct(appr)}
+    {key:"Rent-to-price (gross yield)",w:.15,s:scoreYield(grossYield),detail:pct(grossYield)},
+    {key:"Upside & optionality",w:.10,s:up.s,detail:up.label},
+    {key:"Condition & risk",w:.05,s:cond.s,detail:cond.label},
+    {key:"Schools & area",w:.05,s:clamp(school,0,10),detail:school.toFixed(0)+"/10"}
   ];
   var grade=0;for(var f=0;f<factors.length;f++)grade+=factors[f].w*factors[f].s;
+  var gates=[];
+  if(loan>0&&cap<loanConst){var gap=loanConst-cap;gates.push({cap:gap>2?5:6.5,why:"Negative leverage — cap rate "+pct(cap)+" is below the loan constant "+pct(loanConst)+" (debt costs more than the property earns)."});}
+  if(ds>0&&dscr<1){gates.push({cap:4,why:"DSCR below 1.00 — the property does not cover its own debt."});}
+  if(breakevenOcc>95){gates.push({cap:4,why:"Break-even occupancy above 95% — no room for a vacancy."});}
+  gates.forEach(function(g){if(grade>g.cap)grade=g.cap;});
   var gm=gradeMeta(grade);
   var verdict,vColor,vSoft,vNote;
   if(coc>=8){verdict="STRONG";vColor=C.go;vSoft=C.goSoft;vNote="Meets cash-on-cash and cash-flow targets.";}
@@ -279,7 +297,7 @@ function compute(d){
   return{down:down,loan:loan,pi:pi,cashToClose:cashToClose,grossMo:grossMo,egi:egi,occUnits:occUnits,
     taxes:taxes,maint:maint,opex:opex,noi:noi,acf:acf,mcf:mcf,cap:cap,coc:coc,grm:grm,dscr:dscr,
     breakevenOcc:breakevenOcc,maxPrice:maxPrice,beRentMo:beRentMo,verdict:verdict,vColor:vColor,vSoft:vSoft,
-    vNote:vNote,grade:grade,gm:gm,factors:factors,school:school};
+    vNote:vNote,grade:grade,gm:gm,factors:factors,school:school,gates:gates,cfDoor:cfDoor,grossYield:grossYield,loanConst:loanConst,doors:doors,opexOv:opexOv};
 }
 
 var deals=[],currentId=null,view="analyze",showBreak=true,deal=null;
@@ -299,6 +317,10 @@ function field(label,key,opt){opt=opt||{};var v=key.indexOf("unit")===0?deal.uni
     '<input class="in" inputmode="decimal" data-key="'+key+'" step="'+(opt.step||"1")+'" value="'+esc(v)+'" '+
     'style="padding-left:'+(opt.prefix?20:10)+'px;padding-right:'+(opt.suffix?26:10)+'px"/>'+
     (opt.suffix?'<span class="aff" style="right:9px">'+opt.suffix+'</span>':'')+'</div></div>';}
+function selField(label,key,opts){
+  return '<div class="row"><label class="lab" style="flex:1">'+label+'</label>'+
+    '<select class="in text" data-skey="'+key+'" style="width:220px;max-width:55%">'+
+    opts.map(function(o){return '<option value="'+o[0]+'"'+(deal[key]===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')+'</select></div>';}
 function outRow(label,id,strong){return '<div class="row" style="border-top:1px dashed '+C.line+'">'+
   '<span class="lab" style="'+(strong?'font-weight:600;color:'+C.ink:'')+'">'+label+'</span>'+
   '<span class="out" id="'+id+'" style="font-size:'+(strong?15:13.5)+'px;font-weight:'+(strong?700:500)+'"></span></div>';}
@@ -323,7 +345,7 @@ function resultsHTML(m){
       '<span style="color:'+C.muted+'">'+f.key+' <span style="color:'+C.faint+'">- '+Math.round(f.w*100)+'%</span></span>'+
       '<span class="out" style="color:'+C.ink+'">'+f.detail+' <span style="color:'+C.faint+'">('+f.s.toFixed(1)+')</span></span></div>'+
       '<div style="height:6px;background:'+C.line+';border-radius:999px;overflow:hidden"><div style="width:'+(f.s/10*100)+'%;height:100%;background:'+col+';border-radius:999px"></div></div></div>';}).join('')+
-    '<p style="font-size:11px;color:'+C.faint+';margin:8px 0 0;line-height:1.5">Weighted 1-10 score. Cash-flow and debt-safety metrics drive 85%; school and appreciation are lightly-weighted assumptions.</p></div>';}
+    '<p style="font-size:11px;color:'+C.faint+';margin:8px 0 0;line-height:1.5">Weighted 1-10 score: cash-on-cash 25%, cash flow per door 20%, debt safety 20%, rent-to-price 15%, upside 10%, condition 5%, schools 5%. Deal breakers (negative leverage, DSCR under 1.00, break-even occupancy over 95%) cap the grade no matter how the rest scores.</p></div>';}
   h+='</div>';
   h+='<div class="card" style="margin-top:16px"><div class="seg">Return metrics</div>'+
     metricRow("Cap rate",pct(m.cap))+metricRow("Cash-on-cash",pct(m.coc),true)+metricRow("Gross rent multiplier",mult(m.grm))+
@@ -343,9 +365,7 @@ function resultsHTML(m){
     '<span class="lab" style="font-weight:600;color:'+C.ink+';font-size:14px">Net monthly cash flow</span>'+
     '<span class="out" style="font-size:18px;font-weight:700;color:'+(m.mcf>=0?C.go:C.bad)+'">'+money(m.mcf)+'</span></div>'+
     '<p style="font-size:11.5px;color:'+C.faint+';margin:8px 0 0;line-height:1.5">Effective monthly rent minus monthly P&amp;I and monthly operating expenses. Matches the cash flow shown above.</p></div>';
-  h+='<div class="card" style="margin-top:16px"><div class="seg">Deal solver</div>'+
-    metricRow("Max price for break-even CF",money(m.maxPrice))+metricRow("Rent needed for break-even CF",money(m.beRentMo)+"/mo")+
-    '<p style="font-size:11.5px;color:'+C.faint+';margin:10px 0 0;line-height:1.5">Rents are estimates until verified against current comps. Screening tool only - confirm specifics with your lender and CPA.</p></div>';
+  h+='<p style="font-size:11.5px;color:'+C.faint+';margin:14px 0 0;line-height:1.5">Rents are estimates until verified against current comps. Screening tool only - confirm specifics with your lender and CPA.</p>';
   return h;
 }
 function metricRow(l,v,strong){return '<div class="row" style="border-top:1px dashed '+C.line+'"><span class="lab" style="'+(strong?'font-weight:600;color:'+C.ink:'')+'">'+l+'</span><span class="out" style="font-size:'+(strong?15:13.5)+'px;font-weight:'+(strong?700:500)+'">'+v+'</span></div>';}
@@ -418,9 +438,13 @@ function renderApp(){
       outRow("Gross monthly rent","out_grossMo",true)+outRow("Effective gross income / yr","out_egi")+outRow("Occupied units","out_occ")+'</div>'+
     '<div class="card"><div class="seg">Operating expenses - annual</div>'+
       field("Property tax rate","taxPct",{suffix:"%",step:"0.01"})+field("Insurance","insurance",{prefix:"$"})+field("HOA","hoa",{prefix:"$"})+
-      field("Property mgmt (0 = self-managed)","pmPct",{suffix:"%",step:"0.5"})+field("Maintenance reserve","maintPct",{suffix:"%",step:"0.1"})+field("Owner-paid utilities","utilities",{prefix:"$"})+
+      field("Property management","pmPct",{suffix:"%",step:"0.5"})+field("Maintenance reserve","maintPct",{suffix:"%",step:"0.1"})+field("Owner-paid utilities","utilities",{prefix:"$"})+
+      field("Or enter total expenses (annual)","opexOverride",{prefix:"$"})+
+      '<p style="font-size:11.5px;color:'+C.faint+';margin:2px 0 6px;line-height:1.5">Leave at 0 to add up the lines above. Any number here replaces all of them.</p>'+
       outRow("Property taxes","out_taxes")+outRow("Maintenance reserve","out_maint")+outRow("Total operating expenses (annual)","out_opex",true)+outRow("Total operating expenses (monthly)","out_opexMo",true)+'</div>'+
-    '<div class="card"><div class="seg">Neighborhood &amp; scoring</div>'+
+    '<div class="card"><div class="seg">Upside, condition &amp; area</div>'+
+      selField("Upside potential","upside",[["none","No obvious upside"],["possible","ADU / added unit possible"],["strong","ADU + lot split or big rent upside"]])+
+      selField("Condition &amp; risk","condition",[["turnkey","Turnkey"],["light","Light cosmetic"],["heavy","Heavy rehab"],["problem","Tenants in place / permit issues"]])+
       field("School rating (1-10)","schoolRating",{step:"1"})+
       field("Estimated Annual Appreciation","apprPct",{suffix:"%",step:"0.5"})+'</div>'+
     '</div>';
@@ -492,6 +516,7 @@ function attachAnalyze(){
   if(ni)ni.oninput=function(){var e=deals.find(function(x){return x.id===currentId;});if(e)e.name=ni.value;save();var o=document.querySelector('#dealSelect option[value="'+currentId+'"]');if(o)o.textContent=ni.value;};
   var chk=document.getElementById("aduChk");
   if(chk)chk.onchange=function(){deal.aduOn=chk.checked;save();renderApp();};
+  document.querySelectorAll("[data-skey]").forEach(function(sel){sel.onchange=function(){deal[sel.getAttribute("data-skey")]=sel.value;save();recompute();};});
   var ucs=document.querySelectorAll("[data-uc]");
   ucs.forEach(function(b){b.onclick=function(){deal.unitCount=+b.getAttribute("data-uc");save();renderApp();};});
   var app=document.getElementById("app");
@@ -1723,6 +1748,8 @@ function fxHero(m){
         '<div style="position:absolute;inset:0;display:grid;place-items:center;text-align:center"><div><div class="out" style="font-size:30px;font-weight:800;color:#fff;line-height:1">'+m.grade.toFixed(1)+'</div>'+
         '<div style="font-size:10px;letter-spacing:.08em;color:#7F95AD;margin-top:3px">/ 10</div><div style="font-size:11px;color:'+m.gm.hi+';font-weight:600">'+m.gm.word+'</div></div></div></div></div>'+
     '<p style="margin:10px 0 0;font-size:12.5px;color:#9FB2C8;line-height:1.45">'+m.vNote+'</p>'+
+    ((m.gates&&m.gates.length)?'<div style="margin-top:10px;border-left:2px solid '+RED_H+';padding:6px 0 6px 10px;background:rgba(255,107,129,.08);border-radius:0 8px 8px 0">'+
+      m.gates.map(function(g){return '<div style="font-size:11.5px;color:'+RED_H+';line-height:1.45">Deal breaker · grade capped at '+g.cap.toFixed(1)+' — '+g.why+'</div>';}).join('')+'</div>':'')+
     fxSpark(m)+
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px">'+
     minis.map(function(x){return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 10px"><div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7F95AD">'+x[0]+'</div><div class="out" style="font-size:15px;font-weight:700;margin-top:2px;color:'+(x[2]?GREEN_H:RED_H)+'">'+x[1]+'</div></div>';}).join('')+

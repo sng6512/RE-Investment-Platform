@@ -6,7 +6,7 @@ Built to publish to a public URL (GitHub Pages) and share with partners.
 
 ## Tabs
 
-- **Analyze** — underwrite a new acquisition (up to 6 units + ADU), grade it 1-10, and see the deal solver and break-even gauge.
+- **Analyze** — underwrite a new acquisition (up to 6 units), grade it 1-10 and see the break-even rent gauge. The grade weights cash-on-cash 25%, cash flow per door 20%, debt safety (DSCR) 20%, rent-to-price 15%, upside 10%, condition 5% and schools/area 5%; deal breakers (negative leverage, DSCR under 1.00, break-even occupancy over 95%) cap the grade.
 - **Deal Comparison** — pick which Analyze deals to compare; they are ranked best to worst (Deal score = 60% grade + 40% cash-flow score, ties broken by cash flow) with a leaderboard, ranked cash-flow chart, and detailed side-by-side table. Other sort options: grade, cash flow, cash-on-cash, cap rate, cash to close.
 - **BRRRR Proforma** — deal console for a rehab or ground-up project: purchase + soft costs + construction budget (by sq ft or manual), exit costs and deal-margin health bar, hard-money financing with carry and cash-on-hand needed, then the refinance and monthly BRRRR cash flow.
 - **Market Rent Comps** — neighborhood rent-comp tracker to verify assumptions.
@@ -57,6 +57,13 @@ No build step, no dependencies, works offline once loaded.
 Screening aid only. Not financial, tax, or investment advice. Verify all figures independently.
 
 ## Changelog
+
+### v1.6 — Sep 2026
+- **Rebuilt Analyze grade** around return on capital and survivability: cash-on-cash 25%, cash flow per door 20%, DSCR 20%, rent-to-price (gross yield) 15%, upside & optionality 10%, condition & risk 5%, schools & area 5%. Price-per-sq-ft, cap rate and the self-entered appreciation assumption no longer score.
+- **Deal breakers** cap the grade regardless of the weighted score: negative leverage (cap rate below the loan constant), DSCR under 1.00, break-even occupancy over 95%. Each is spelled out in the results panel.
+- Two new one-click inputs: **Upside potential** (none / ADU or added unit / ADU + lot split or big rent upside) and **Condition & risk** (turnkey / light cosmetic / heavy rehab / tenants in place or permit issues).
+- Operating expenses: new **Or enter total expenses (annual)** field that replaces the individual lines when set.
+- Removed the **Deal solver** card (the break-even rent gauge covers it) and the "(0 = self-managed)" note on property management.
 
 ### v1.5 — Sep 2026
 - New **BRRRR** tab (deal console): project cost roll-up, sales/exit costs with a deal-margin health bar (Pass / Wholesale / Flip / BRRRR), hard-money acquisition financing with carry and cash-on-hand needed, and refinance + rental cash flow, all in the platform's theme. Included in JSON backup.
