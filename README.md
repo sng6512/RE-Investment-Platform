@@ -7,9 +7,10 @@ Built to publish to a public URL (GitHub Pages) and share with partners.
 ## Tabs
 
 - **Analyze** — underwrite a new acquisition (up to 6 units + ADU), grade it 1-10, and see the deal solver and break-even gauge.
-- **Deal Comparison Analysis** — pick which Analyze deals to compare; they are ranked best to worst (Deal score = 60% grade + 40% cash-flow score, ties broken by cash flow) with a leaderboard, ranked cash-flow chart, and detailed side-by-side table. Other sort options: grade, cash flow, cash-on-cash, cap rate, cash to close.
+- **Deal Comparison** — pick which Analyze deals to compare; they are ranked best to worst (Deal score = 60% grade + 40% cash-flow score, ties broken by cash flow) with a leaderboard, ranked cash-flow chart, and detailed side-by-side table. Other sort options: grade, cash flow, cash-on-cash, cap rate, cash to close.
+- **BRRRR Proforma** — deal console for a rehab or ground-up project: purchase + soft costs + construction budget (by sq ft or manual), exit costs and deal-margin health bar, hard-money financing with carry and cash-on-hand needed, then the refinance and monthly BRRRR cash flow.
 - **Market Rent Comps** — neighborhood rent-comp tracker to verify assumptions.
-- **Margin** — margin deal calculator (wholesale / fix & flip / buy & hold).
+- **Margin Calc** — margin deal calculator (wholesale / fix & flip / buy & hold).
 - **REPS Log** — Real Estate Professional Status hours tracker.
 - **Team** — A-List contacts and region-based contractors, each list in call-priority order (drag or ▲ ▼ to reorder).
 - **Portfolio** — track owned properties: purchase data, financing, rents, PITI (editable to match your mortgage statement), NOI, cash flow, cap rate, CoC, DSCR, equity, and loan paydown, with portfolio-level KPIs and multiple portfolios.
@@ -56,6 +57,13 @@ No build step, no dependencies, works offline once loaded.
 Screening aid only. Not financial, tax, or investment advice. Verify all figures independently.
 
 ## Changelog
+
+### v1.5 — Sep 2026
+- New **BRRRR** tab (deal console): project cost roll-up, sales/exit costs with a deal-margin health bar (Pass / Wholesale / Flip / BRRRR), hard-money acquisition financing with carry and cash-on-hand needed, and refinance + rental cash flow, all in the platform's theme. Included in JSON backup.
+- Renamed **Deal Comparison Analysis** to **Deal Comparison**; BRRRR sits between it and Market Rent Comps.
+- **BRRRR Proforma** saves multiple proformas: pick one from the dropdown, add a new one, or delete one; each keeps its own inputs.
+- Analyze: removed the Add ADU toggle and the notes under school rating and appreciation; renamed the field to **Estimated Annual Appreciation**. Removed the sub-title under the page header. Tabs renamed to **BRRRR Proforma** and **Margin Calc**.
+- **Neon energy bar** for deal margin: glowing pill-style bar with a bright leading tip, shown on both the BRRRR tab and the Margin calculator, coloured by tier.
 
 ### v1.4 — Sep 2026
 - **Fintech Dark** visual theme (now the default look; the sun/moon button switches to Light and is remembered per browser): glowing navy background, glass cards, gradient active tabs, and an icon on every tab.
