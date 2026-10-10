@@ -1014,18 +1014,17 @@ function teamHTML(){
 /* ---- A-list (global, all regions) ---- */
 function alistCard(c,i){
   var regOpts='<option value="all"'+((c.region==="all"||!c.region)?' selected':'')+'>All regions</option>'+regions.map(function(r){return '<option value="'+r.id+'"'+(c.region===r.id?' selected':'')+'>'+esc(r.name)+'</option>';}).join('');
-  var profOpts=ALIST_PROF.map(function(p){return '<option'+(c.profession===p[0]?' selected':'')+'>'+p[0]+'</option>';}).join('');
-  return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;padding:10px 0;border-top:1px solid '+C.line+'">'+
+  return '<div class="con-row" style="padding:10px 0;border-top:1px solid '+C.line+'">'+
     fld2("Name",'<input class="in text" data-ak="name" data-ai="'+i+'" value="'+esc(c.name)+'">')+
-    fld2("Profession",'<select class="in" data-asel="profession" data-ai="'+i+'" style="text-align:left">'+profOpts+'</select>')+
     fld2("Region coverage",'<select class="in" data-asel="region" data-ai="'+i+'" style="text-align:left">'+regOpts+'</select>')+
     fld2("Phone",'<input class="in text" data-ak="phone" data-ai="'+i+'" value="'+esc(c.phone)+'">')+
     fld2("Email",'<input class="in text" data-ak="email" data-ai="'+i+'" value="'+esc(c.email)+'">')+
-    fld2("Notes",'<input class="in text" data-ak="notes" data-ai="'+i+'" value="'+esc(c.notes)+'">')+
+    '<div class="con-notes" style="display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;color:'+C.faint+'">Notes</span>'+
+      '<input class="in text" data-ak="notes" data-ai="'+i+'" value="'+esc(c.notes)+'"></div>'+
     '<div style="display:flex;align-items:flex-end"><button class="chip" data-adel="'+i+'" style="color:'+C.bad+'">Remove</button></div></div>';
 }
 function alistHTML(){
-  var intro='<div class="card" style="padding:14px 16px;margin-bottom:14px"><div class="seg">A-List team — all regions</div><p style="font-size:12.5px;color:'+C.muted+';margin:6px 0 0;line-height:1.5">Key contacts that apply across every region. Tag each with a profession and the region they cover.</p></div>';
+  var intro='<div class="card" style="padding:14px 16px;margin-bottom:14px"><div class="seg">A-List team — all regions</div><p style="font-size:12.5px;color:'+C.muted+';margin:6px 0 0;line-height:1.5">Key contacts that apply across every region. Add each under its profession and set the region they cover.</p></div>';
   var body=ALIST_PROF.map(function(p){
     var key=p[0],label=p[1];
     var cards=alist.map(function(c,i){return c.profession===key?alistCard(c,i):"";}).join('');
