@@ -188,7 +188,9 @@
   .nrg-scale{display:flex;justify-content:space-between;gap:8px;font-size:10.5px;color:#7F95AD;margin-top:7px}
   .brr-pick{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
   /* contractor row: notes takes the leftover width */
-  .con-row{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr)) 2fr auto;gap:10px;align-items:start}
+  .con-row{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr)) 1.8fr auto;gap:10px;align-items:start}
+  .alist-row{grid-template-columns:repeat(5,minmax(110px,1fr)) 1.5fr auto}
+  @media(max-width:1200px){.alist-row{grid-template-columns:repeat(3,minmax(130px,1fr)) auto}}
   @media(max-width:1000px){.con-row{grid-template-columns:repeat(2,minmax(140px,1fr))}.con-notes{grid-column:1/-1}}
   @media(max-width:600px){.con-row{grid-template-columns:1fr}.con-notes{grid-column:auto}}
   @media (prefers-reduced-motion:reduce){.nrg-fill{animation:none}}
@@ -1014,8 +1016,9 @@ function teamHTML(){
 /* ---- A-list (global, all regions) ---- */
 function alistCard(c,i){
   var regOpts='<option value="all"'+((c.region==="all"||!c.region)?' selected':'')+'>All regions</option>'+regions.map(function(r){return '<option value="'+r.id+'"'+(c.region===r.id?' selected':'')+'>'+esc(r.name)+'</option>';}).join('');
-  return '<div class="con-row" style="padding:10px 0;border-top:1px solid '+C.line+'">'+
+  return '<div class="con-row alist-row" style="padding:10px 0;border-top:1px solid '+C.line+'">'+
     fld2("Name",'<input class="in text" data-ak="name" data-ai="'+i+'" value="'+esc(c.name)+'">')+
+    fld2("Company",'<input class="in text" data-ak="company" data-ai="'+i+'" value="'+esc(c.company||"")+'">')+
     fld2("Region coverage",'<select class="in" data-asel="region" data-ai="'+i+'" style="text-align:left">'+regOpts+'</select>')+
     fld2("Phone",'<input class="in text" data-ak="phone" data-ai="'+i+'" value="'+esc(c.phone)+'">')+
     fld2("Email",'<input class="in text" data-ak="email" data-ai="'+i+'" value="'+esc(c.email)+'">')+
@@ -1036,7 +1039,7 @@ function alistHTML(){
 function attachAlist(){
   document.querySelectorAll("[data-ak]").forEach(function(inp){inp.oninput=function(){alist[+inp.getAttribute("data-ai")][inp.getAttribute("data-ak")]=inp.value;saveAlist();};});
   document.querySelectorAll("[data-asel]").forEach(function(sel){sel.onchange=function(){alist[+sel.getAttribute("data-ai")][sel.getAttribute("data-asel")]=sel.value;saveAlist();renderApp();};});
-  document.querySelectorAll("[data-alistadd]").forEach(function(b){b.onclick=function(){alist.push({id:uid(),name:"",profession:b.getAttribute("data-alistadd"),region:"all",phone:"",email:"",notes:""});saveAlist();renderApp();};});
+  document.querySelectorAll("[data-alistadd]").forEach(function(b){b.onclick=function(){alist.push({id:uid(),name:"",company:"",profession:b.getAttribute("data-alistadd"),region:"all",phone:"",email:"",notes:""});saveAlist();renderApp();};});
   document.querySelectorAll("[data-adel]").forEach(function(b){b.onclick=function(){if(!confirm("Remove contact?"))return;alist.splice(+b.getAttribute("data-adel"),1);saveAlist();renderApp();};});
 }
 
